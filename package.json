@@ -1,0 +1,25 @@
+{
+  "name": "paternity",
+  "version": "0.1.0",
+  "description": "An anti-framework ( with probably allot of anti-patterns :\\ )",
+  "main": "index.js",
+  "scripts": {
+    "test": "ava"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/doesdev/paternity.git"
+  },
+  "author": "Andrew Carpenter (https://github.com/doesdev)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/doesdev/paternity/issues"
+  },
+  "homepage": "https://github.com/doesdev/paternity#readme",
+  "devDependencies": {
+    "ava": "^0.18.2"
+  },
+  "dependencies": {
+    "uws": "^0.13.0"
+  }
+}
