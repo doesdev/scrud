@@ -7,7 +7,7 @@ import test from 'ava'
 test.todo('testSomething')
 
 /* API
-const pattyOpts = {port: 8081}
+const pattyOpts = {port: 8081, secret: 'someSecureString', logpath: '/logs'}
 const patty = require('paternity')
 const handleIt = require('./some-other-resource')
 
@@ -19,10 +19,19 @@ await patty.start()
 
 /* RESOURCE OBJECT
 {
-  search: () => {},
-  create: () => {},
-  read: () => {},
-  update: () => {},
-  delete: () => {}
+  name: 'some-resource',
+  search: (req, res) => Promise.resolve('done'),
+  create: (req, res) => Promise.resolve('done'),
+  read: (req, res) => Promise.resolve('done'),
+  update: (req, res) => Promise.resolve('done'),
+  delete: (req, res) => Promise.resolve('done')
 }
+*/
+
+/* GLOBAL HELPERS
+const logger = patty.logger // {debug, info, warn, fatal}
+let records = patty._find('some-resource', {id: 1})
+let records = patty._findAll('some-resource', {name: 'jerry'})
+let newRecord = await patty._create('some-resource', {name: 'jimmy'})
+let updatedRecord = await patty._save('some-resource', {id: 1, name: 'john'})
 */
