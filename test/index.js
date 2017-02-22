@@ -11,10 +11,9 @@ const pattyOpts = {port: 8081, secret: 'someSecureString', logpath: '/logs'}
 const patty = require('paternity')
 const handleIt = require('./some-other-resource') // same as resource obj
 
-await patty.init(pattyOpts)
 const someResource = await patty.register('some-resource')
 const someOtherResource = await patty.register('some-other-resource', handleIt)
-await patty.start()
+await patty.start(pattyOpts)
 */
 
 /* RESOURCE OBJECT
