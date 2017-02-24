@@ -1,6 +1,12 @@
 'use strict'
 
 // setup
+const uws = require('uws')
+const http = uws.http
+const port = process.env.PORT || process.env.port || 8091
+
+// globals
+let server
 
 // exports
 module.exports = {register, start, logger, _find, _findAll, _create, _save}
@@ -13,7 +19,20 @@ function register (name, opts) {
 }
 
 // start server
-function start () { return null }
+function start (opts = {}) {
+  return new Promise((resolve, reject) => {
+    server = http.createServer(handleRequest)
+    server.listen(opts.port || port)
+    console.log(server)
+    resolve(server)
+  })
+}
+
+// request handler
+function handleRequest (req, res) {
+  console.log('got request')
+  res.end(`world`)
+}
 
 // return global logger
 function logger () { return null }

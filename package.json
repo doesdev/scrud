@@ -2,6 +2,9 @@
   "name": "paternity",
   "version": "0.1.0",
   "description": "An anti-framework ( with probably allot of anti-patterns :| )",
+  "engines": {
+    "node": ">=6.0.0"
+  },
   "main": "index.js",
   "files": [
     "index.js",
@@ -21,7 +24,8 @@
   },
   "homepage": "https://github.com/doesdev/paternity#readme",
   "devDependencies": {
-    "ava": "^0.18.2"
+    "ava": "^0.18.2",
+    "axios": "^0.15.3"
   },
   "dependencies": {
     "jsonwebtoken": "^7.3.0",
