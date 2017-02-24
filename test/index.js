@@ -2,18 +2,31 @@
 
 // setup
 import test from 'ava'
+import patty from './../index'
 
 // test something
-test.todo('testSomething')
+test('register returns resource object', async (assert) => {
+  await assert.throws(patty.register(), Error, 'register throws with no name')
+  let resource = await patty.register('users')
+  assert.truthy(resource, 'resource is defined')
+  assert.truthy(resource.hasOwnProperty('name'), 'resource has name')
+  assert.truthy(resource.hasOwnProperty('search'), 'resource has search')
+  assert.truthy(resource.hasOwnProperty('create'), 'resource has create')
+  assert.truthy(resource.hasOwnProperty('read'), 'resource has read')
+  assert.truthy(resource.hasOwnProperty('update'), 'resource has update')
+  assert.truthy(resource.hasOwnProperty('delete'), 'resource has delete')
+})
 
 /* API
 const pattyOpts = {port: 8081, secret: 'someSecureString', logpath: '/logs'}
 const patty = require('paternity')
 const handleIt = require('./some-other-resource') // same as resource obj
 
-const someResource = await patty.register('some-resource')
-const someOtherResource = await patty.register('some-other-resource', handleIt)
-await patty.start(pattyOpts)
+async function main () {
+  const someResource = await patty.register('some-resource')
+  const someOtherResource = await patty.register('some-other-resource', handleIt)
+  await patty.start(pattyOpts)
+}
 */
 
 /* RESOURCE OBJECT

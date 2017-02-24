@@ -1,10 +1,14 @@
 {
   "name": "paternity",
   "version": "0.1.0",
-  "description": "An anti-framework ( with probably allot of anti-patterns :\\ )",
+  "description": "An anti-framework ( with probably allot of anti-patterns :| )",
   "main": "index.js",
+  "files": [
+    "index.js",
+    "helpers"
+  ],
   "scripts": {
-    "test": "ava --debug"
+    "test": "ava --verbose"
   },
   "repository": {
     "type": "git",
@@ -20,6 +24,8 @@
     "ava": "^0.18.2"
   },
   "dependencies": {
+    "jsonwebtoken": "^7.3.0",
+    "pg": "^6.1.2",
     "uws": "^0.13.0"
   }
 }
