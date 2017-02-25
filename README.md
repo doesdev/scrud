@@ -2,6 +2,8 @@
 
 > Super opinionated, minimalistic, PG centric API fabric
 
+# This is a non-functional work in progress. Don't use it yet. Thanks ;)
+
 ## install
 
 ```sh
