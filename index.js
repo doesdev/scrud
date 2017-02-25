@@ -58,11 +58,11 @@ function handleRequest (req, res) {
   if (!baseRgx.test(req.url)) return fourOhFour(res)
   let url = cleanPath(req.url)
   let matches = url.match(/^\/?(.+?)(\/|\?|$)/) || []
-  let resource = matches[1]
+  let resource = resources[matches[1] || '']
   let modifier = matches[2]
   let action = scrud[`${req.method}${modifier}`]
   if (!resource || !action) return fourOhFour(res)
-  res.setHeader('SCRUD', `${resource}:${action}`)
+  res.setHeader('SCRUD', `${resource.name}:${action}`)
   res.end('{}')
 }
 
