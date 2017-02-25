@@ -3,6 +3,13 @@
 // setup
 const http = require('http')
 const port = process.env.PORT || process.env.port || 8091
+const handlers = {
+  search: resourceSearch,
+  create: resourceCreate,
+  read: resourceRead,
+  update: resourceUpdate,
+  delete: resourceDelete
+}
 const scrud = {
   GET: 'search',
   'GET?': 'search',
@@ -63,7 +70,7 @@ function handleRequest (req, res) {
   let action = scrud[`${req.method}${modifier}`]
   if (!resource || !action) return fourOhFour(res)
   res.setHeader('SCRUD', `${resource.name}:${action}`)
-  res.end('{}')
+  return (resource[action] || handlers[action])(req, res, resource.name)
 }
 
 // return global logger
@@ -80,3 +87,18 @@ function _create () { return null }
 
 // helper: update resource
 function _save () { return null }
+
+// resource method: search
+function resourceSearch (req, res, name) { return res.end('{}') }
+
+// resource method: create
+function resourceCreate (req, res, name) { return res.end('{}') }
+
+// resource method: read
+function resourceRead (req, res, name) { return res.end('{}') }
+
+// resource method: update
+function resourceUpdate (req, res, name) { return res.end('{}') }
+
+// resource method: delete
+function resourceDelete (req, res, name) { return res.end('{}') }
