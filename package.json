@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "jsonwebtoken": "^7.3.0",
-    "pg": "^6.1.2"
+    "pg": "^6.1.2",
+    "tiny-params": "^1.0.0"
   }
 }

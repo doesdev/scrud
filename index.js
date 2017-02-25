@@ -2,6 +2,7 @@
 
 // setup
 const http = require('http')
+const tinyParams = require('tiny-params')
 const port = process.env.PORT || process.env.port || 8091
 const handlers = {
   search: resourceSearch,
@@ -34,20 +35,6 @@ const cleanPath = (url) => {
 const parseId = (url) => {
   let id = (url.match(/\/(.+?)(\/|\?|$)/) || [])[1]
   return (id || '').match(/^\d+$/) ? parseInt(id, 10) : id || null
-}
-
-const parseParams = (url) => {
-  if (!url || url === '' || !/\?/.test(url)) return {}
-  let q = url.split(/\?(.+)?/)[1]
-  let obj = {}
-  let ary = q.split('&')
-  ary.forEach((q) => {
-    q = (q.split('=') || [q]).map(decodeURIComponent)
-    if (!obj[q[0]]) return (obj[q[0]] = q[1])
-    if (Array.isArray(obj[q[0]])) obj[q[0]] = obj[q[0]].concat([q[1]])
-    else obj[q[0]] = [obj[q[0]]].concat([q[1]])
-  })
-  return obj
 }
 
 // exports
@@ -90,7 +77,7 @@ function handleRequest (req, res) {
   if (!resource || !action) return fourOhFour(res)
   res.setHeader('SCRUD', `${resource.name}:${action}`)
   req.id = parseId(url)
-  req.params = parseParams(url)
+  req.params = tinyParams(url)
   return (resource[action] || handlers[action])(req, res, resource.name)
 }
 
