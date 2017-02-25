@@ -61,10 +61,10 @@ function handleRequest (req, res) {
   if (!resourceRgx.test(url)) return fourOhFour(res)
   let reqBase = cleanPath(url.match(resourceRgx)[0])
   let resource = reqBase.replace(/\/|\?/g, '')
-  let modifier = (reqBase.match(/\/|\?$/) || [])[0]
+  let modifier = (reqBase.match(/\/|\?$/) || [])[0] || ''
   let action = scrud[`${req.method}${modifier}`]
-  console.log(resource, action)
-  res.end(`world`)
+  if (!resource || !action) return fourOhFour(res)
+  res.end(`${resource}:${action}`)
 }
 
 // return global logger

@@ -11,7 +11,24 @@ test('server starts and accepts messages', async (assert) => {
   await patty.register('user')
   await assert.notThrows(patty.start(opts), 'start does not throw')
   let res = await axios.get(`http://localhost:${opts.port}/${reqPath}`)
-  assert.is(res.data, 'world')
+  assert.is(res.data, 'user:search')
+})
+
+test('scrud actions are handled as expected', async (assert) => {
+  await patty.register('user')
+  let opts = {port: 8093, base: '/api'}
+  await patty.start(opts)
+  let base = `http://localhost:${opts.port}${opts.base}/user`
+  let s = await axios({method: 'GET', url: `${base}?first=andrew`})
+  assert.is(s.data, 'user:search')
+  let c = await axios({method: 'POST', url: `${base}`})
+  assert.is(c.data, 'user:create')
+  let r = await axios({method: 'GET', url: `${base}/1`})
+  assert.is(r.data, 'user:read')
+  let u = await axios({method: 'PUT', url: `${base}/1`})
+  assert.is(u.data, 'user:update')
+  let d = await axios({method: 'DELETE', url: `${base}/1`})
+  assert.is(d.data, 'user:delete')
 })
 
 test('register returns resource object', async (assert) => {
