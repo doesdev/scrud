@@ -31,6 +31,25 @@ const cleanPath = (url) => {
   return decodeURIComponent(url).replace(baseRgx, '').replace(/\/$/, '')
 }
 
+const parseId = (url) => {
+  let id = (url.match(/\/(.+?)(\/|\?|$)/) || [])[1]
+  return (id || '').match(/^\d+$/) ? parseInt(id, 10) : id || null
+}
+
+const parseParams = (url) => {
+  if (!url || url === '' || !/\?/.test(url)) return {}
+  let q = url.split(/\?(.+)?/)[1]
+  let obj = {}
+  let ary = q.split('&')
+  ary.forEach((q) => {
+    q = (q.split('=') || [q]).map(decodeURIComponent)
+    if (!obj[q[0]]) return (obj[q[0]] = q[1])
+    if (Array.isArray(obj[q[0]])) obj[q[0]] = obj[q[0]].concat([q[1]])
+    else obj[q[0]] = [obj[q[0]]].concat([q[1]])
+  })
+  return obj
+}
+
 // exports
 module.exports = {register, start, logger, _find, _findAll, _create, _save}
 
@@ -70,6 +89,8 @@ function handleRequest (req, res) {
   let action = scrud[`${req.method}${modifier}`]
   if (!resource || !action) return fourOhFour(res)
   res.setHeader('SCRUD', `${resource.name}:${action}`)
+  req.id = parseId(url)
+  req.params = parseParams(url)
   return (resource[action] || handlers[action])(req, res, resource.name)
 }
 
@@ -89,16 +110,31 @@ function _create () { return null }
 function _save () { return null }
 
 // resource method: search
-function resourceSearch (req, res, name) { return res.end('{}') }
+function resourceSearch (req, res, name) {
+  console.log(req.id, req.params)
+  return res.end('{}')
+}
 
 // resource method: create
-function resourceCreate (req, res, name) { return res.end('{}') }
+function resourceCreate (req, res, name) {
+  console.log(req.id, req.params)
+  return res.end('{}')
+}
 
 // resource method: read
-function resourceRead (req, res, name) { return res.end('{}') }
+function resourceRead (req, res, name) {
+  console.log(req.id, req.params)
+  return res.end('{}')
+}
 
 // resource method: update
-function resourceUpdate (req, res, name) { return res.end('{}') }
+function resourceUpdate (req, res, name) {
+  console.log(req.id, req.params)
+  return res.end('{}')
+}
 
 // resource method: delete
-function resourceDelete (req, res, name) { return res.end('{}') }
+function resourceDelete (req, res, name) {
+  console.log(req.id, req.params)
+  return res.end('{}')
+}
