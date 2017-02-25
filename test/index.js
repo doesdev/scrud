@@ -19,7 +19,8 @@ test('scrud actions are handled as expected', async (assert) => {
   let opts = {port: 8093, base: '/api'}
   await patty.start(opts)
   let base = `http://localhost:${opts.port}${opts.base}/user`
-  let s = await axios({method: 'GET', url: `${base}?first=andrew`})
+  let sParams = `${encodeURIComponent('?first=andrew')}`
+  let s = await axios({method: 'GET', url: `${base}${sParams}`})
   assert.is(s.headers.scrud, 'user:search')
   let c = await axios({method: 'POST', url: `${base}`})
   assert.is(c.headers.scrud, 'user:create')

@@ -17,13 +17,11 @@ const scrud = {
 let server
 let base = ''
 let baseRgx = new RegExp(`^/?${base}/`)
-let resourceRgx = new RegExp('a^')
 let resources = {}
 
 // helpers
-const cleanPath = (url) => url.replace(baseRgx, '')
-const getRgx = () => {
-  return `^/?${base}/${Object.keys(resources).join(`|^/?${base}/`)}(\\/|\\?|$)`
+const cleanPath = (url) => {
+  return decodeURIComponent(url).replace(baseRgx, '').replace(/\/$/, '')
 }
 
 // exports
@@ -34,7 +32,6 @@ function register (name, opts) {
   if (!name) return Promise.reject(new Error(`no name specified in register`))
   return new Promise((resolve, reject) => {
     let r = resources[name] = {name}
-    resourceRgx = new RegExp(getRgx())
     return resolve(r)
   })
 }
@@ -43,7 +40,6 @@ function register (name, opts) {
 function start (opts = {}) {
   base = opts.base
   baseRgx = new RegExp(`^/?${base}/`)
-  resourceRgx = new RegExp(getRgx())
   return new Promise((resolve, reject) => {
     server = http.createServer(handleRequest)
     server.listen(opts.port || port)
@@ -59,11 +55,11 @@ function fourOhFour (res) {
 
 // request handler
 function handleRequest (req, res) {
-  let url = req.url
-  if (!resourceRgx.test(url)) return fourOhFour(res)
-  let reqBase = cleanPath(url.match(resourceRgx)[0])
-  let resource = reqBase.replace(/\/|\?/g, '')
-  let modifier = (reqBase.match(/\/|\?$/) || [])[0] || ''
+  if (!baseRgx.test(req.url)) return fourOhFour(res)
+  let url = cleanPath(req.url)
+  let matches = url.match(/^\/?(.+?)(\/|\?|$)/) || []
+  let resource = matches[1]
+  let modifier = matches[2]
   let action = scrud[`${req.method}${modifier}`]
   if (!resource || !action) return fourOhFour(res)
   res.setHeader('SCRUD', `${resource}:${action}`)
