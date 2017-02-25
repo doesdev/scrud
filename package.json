@@ -1,7 +1,7 @@
 {
-  "name": "paternity",
+  "name": "scrud",
   "version": "0.1.0",
-  "description": "An anti-framework ( with probably allot of anti-patterns :| )",
+  "description": "Super opiniated, minimalistic, PG centric API fabric",
   "engines": {
     "node": ">=6.0.0"
   },
@@ -15,21 +15,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/doesdev/paternity.git"
+    "url": "git+https://github.com/doesdev/scrud.git"
   },
   "author": "Andrew Carpenter (https://github.com/doesdev)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/doesdev/paternity/issues"
+    "url": "https://github.com/doesdev/scrud/issues"
   },
-  "homepage": "https://github.com/doesdev/paternity#readme",
+  "homepage": "https://github.com/doesdev/scrud#readme",
   "devDependencies": {
     "ava": "^0.18.2",
     "axios": "^0.15.3"
   },
   "dependencies": {
     "jsonwebtoken": "^7.3.0",
-    "pg": "^6.1.2",
-    "uws": "^0.13.0"
+    "pg": "^6.1.2"
   }
 }

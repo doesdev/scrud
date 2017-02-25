@@ -2,22 +2,22 @@
 
 // setup
 import test from 'ava'
-import patty from './../index'
+import scrud from './../index'
 import axios from 'axios'
 
 test('server starts and accepts messages', async (assert) => {
   let opts = {port: 8092, base: '/api'}
   let reqPath = `api/user?first=andrew&last=carpenter&zip=37615&zip=37601`
-  await patty.register('user')
-  await assert.notThrows(patty.start(opts), 'start does not throw')
+  await scrud.register('user')
+  await assert.notThrows(scrud.start(opts), 'start does not throw')
   let res = await axios.get(`http://localhost:${opts.port}/${reqPath}`)
   assert.is(res.headers.scrud, 'user:search')
 })
 
 test('scrud actions are handled as expected', async (assert) => {
-  await patty.register('user')
+  await scrud.register('user')
   let opts = {port: 8093, base: '/api'}
-  await patty.start(opts)
+  await scrud.start(opts)
   let base = `http://localhost:${opts.port}${opts.base}/user`
   let sParams = `${encodeURIComponent('?first=andrew')}`
   let s = await axios({method: 'GET', url: `${base}${sParams}`})
@@ -33,8 +33,8 @@ test('scrud actions are handled as expected', async (assert) => {
 })
 
 test('register returns resource object', async (assert) => {
-  await assert.throws(patty.register(), Error, 'register throws with no name')
-  let resource = await patty.register('user')
+  await assert.throws(scrud.register(), Error, 'register throws with no name')
+  let resource = await scrud.register('user')
   assert.truthy(resource, 'resource is defined')
   assert.truthy(resource.hasOwnProperty('name'), 'resource has name')
   // assert.truthy(resource.hasOwnProperty('search'), 'resource has search')
@@ -45,14 +45,14 @@ test('register returns resource object', async (assert) => {
 })
 
 /* API
-const pattyOpts = {port: 8081, secret: 'someSecureString', logpath: '/logs'}
-const patty = require('paternity')
+const scrudOpts = {port: 8081, secret: 'someSecureString', logpath: '/logs'}
+const scrud = require('scrud')
 const handleIt = require('./some-other-resource') // same as resource obj
 
 async function main () {
-  const someResource = await patty.register('some-resource')
-  const someOtherResource = await patty.register('some-other-resource', handleIt)
-  await patty.start(pattyOpts)
+  const someResource = await scrud.register('some-resource')
+  const someOtherResource = await scrud.register('some-other-resource', handleIt)
+  await scrud.start(scrudOpts)
 }
 */
 
@@ -68,9 +68,9 @@ async function main () {
 */
 
 /* GLOBAL HELPERS
-const logger = patty.logger // {debug, info, warn, fatal}
-let record = await patty._find('some-resource', {id: 1})
-let records = await patty._findAll('some-resource', {name: 'jerry'})
-let newRecord = await patty._create('some-resource', {name: 'jimmy'})
-let updatedRecord = await patty._save('some-resource', {id: 1, name: 'john'})
+const logger = scrud.logger // {debug, info, warn, fatal}
+let record = await scrud._find('some-resource', {id: 1})
+let records = await scrud._findAll('some-resource', {name: 'jerry'})
+let newRecord = await scrud._create('some-resource', {name: 'jimmy'})
+let updatedRecord = await scrud._save('some-resource', {id: 1, name: 'john'})
 */

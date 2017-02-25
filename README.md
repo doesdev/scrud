@@ -1,11 +1,11 @@
-# paternity [![NPM version](https://badge.fury.io/js/paternity.svg)](https://npmjs.org/package/paternity)   [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)
+# scrud [![NPM version](https://badge.fury.io/js/scrud.svg)](https://npmjs.org/package/scrud)   [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)
 
 > An anti-framework ( with probably allot of anti-patterns :\ )
 
 ## install
 
 ```sh
-$ npm install --save paternity
+$ npm install --save scrud
 ```
 
 ## api
@@ -14,8 +14,8 @@ $ npm install --save paternity
 ## usage
 
 ```js
-var paternity = require('paternity');
-paternity();
+var scrud = require('scrud');
+scrud();
 ```
 
 ## License
