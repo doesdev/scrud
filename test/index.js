@@ -4,44 +4,38 @@
 import test from 'ava'
 import scrud from './../index'
 import axios from 'axios'
-
-test('server starts and accepts messages', async (assert) => {
-  let opts = {port: 8092, base: '/api'}
-  let reqPath = `api/user?first=andrew&last=carpenter&zip=37615&zip=37601`
-  await scrud.register('user')
-  await assert.notThrows(scrud.start(opts), 'start does not throw')
-  let res = await axios.get(`http://localhost:${opts.port}/${reqPath}`)
-  assert.is(res.headers.scrud, 'user:search')
-})
+let secrets
+try {
+  secrets = require('./../../_secrets/scrud/config.json')
+} catch (ex) {
+  secrets = {}
+}
 
 test('scrud actions are handled as expected', async (assert) => {
-  await scrud.register('user')
-  let opts = {port: 8093, base: '/api'}
+  await scrud.register('member')
+  let opts = {port: 8092, base: '/api'}
+  Object.assign(opts, secrets)
   await scrud.start(opts)
-  let base = `http://localhost:${opts.port}${opts.base}/user`
+  let base = `http://localhost:${opts.port}${opts.base}/member`
   let sParams = `${encodeURIComponent('?first=andrew')}`
   let s = await axios({method: 'GET', url: `${base}${sParams}`})
-  assert.is(s.headers.scrud, 'user:search')
+  assert.is(s.headers.scrud, 'member:search')
   let c = await axios({method: 'POST', url: `${base}`})
-  assert.is(c.headers.scrud, 'user:create')
+  assert.is(c.headers.scrud, 'member:create')
   let r = await axios({method: 'GET', url: `${base}/1`})
-  assert.is(r.headers.scrud, 'user:read')
+  assert.is(r.headers.scrud, 'member:read')
   let u = await axios({method: 'PUT', url: `${base}/1`})
-  assert.is(u.headers.scrud, 'user:update')
+  assert.is(u.headers.scrud, 'member:update')
   let d = await axios({method: 'DELETE', url: `${base}/1`})
-  assert.is(d.headers.scrud, 'user:delete')
+  assert.is(d.headers.scrud, 'member:delete')
 })
 
 test('register returns resource object', async (assert) => {
   await assert.throws(scrud.register(), Error, 'register throws with no name')
-  let resource = await scrud.register('user')
+  let resource = await scrud.register('profile')
   assert.truthy(resource, 'resource is defined')
   assert.truthy(resource.hasOwnProperty('name'), 'resource has name')
-  // assert.truthy(resource.hasOwnProperty('search'), 'resource has search')
-  // assert.truthy(resource.hasOwnProperty('create'), 'resource has create')
-  // assert.truthy(resource.hasOwnProperty('read'), 'resource has read')
-  // assert.truthy(resource.hasOwnProperty('update'), 'resource has update')
-  // assert.truthy(resource.hasOwnProperty('delete'), 'resource has delete')
+  assert.is(resource.name, 'profile')
 })
 
 /* API
@@ -59,6 +53,7 @@ async function main () {
 /* RESOURCE OBJECT
 {
   name: 'some-resource',
+  // these will only show up if overrides are in place for these actions
   search: (req, res) => Promise.resolve('done'),
   create: (req, res) => Promise.resolve('done'),
   read: (req, res) => Promise.resolve('done'),

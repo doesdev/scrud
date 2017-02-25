@@ -36,3 +36,13 @@ jspm_packages
 
 # Optional REPL history
 .node_repl_history
+
+# ignore secrets and configs that might contain secrets
+secrets.json
+_secrets.json
+config.json
+_config.json
+db.json
+_db.json
+database.json
+_database.json
