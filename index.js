@@ -4,6 +4,7 @@
 const http = require('http')
 const port = process.env.PORT || process.env.port || 8091
 const scrud = {
+  GET: 'search',
   'GET?': 'search',
   POST: 'create',
   'POST/': 'create',
