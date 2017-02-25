@@ -6,6 +6,7 @@ const port = process.env.PORT || process.env.port || 8091
 const scrud = {
   'GET?': 'search',
   POST: 'create',
+  'POST/': 'create',
   'GET/': 'read',
   'PUT/': 'update',
   'DELETE/': 'delete'
