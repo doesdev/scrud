@@ -76,7 +76,7 @@ function start (opts = {}) {
 // handle 404
 function fourOhFour (res) {
   res.statusCode = 404
-  res.end('no match for requested route')
+  res.end(`{"error": "no match for requested route"}`)
 }
 
 // request handler
@@ -111,25 +111,25 @@ function _save () { return null }
 
 // resource method: search
 function resourceSearch (req, res, name) {
-  return res.end('{}')
+  return res.end(`{"data": [], "error": null}`)
 }
 
 // resource method: create
 function resourceCreate (req, res, name) {
-  return res.end('{}')
+  return res.end(`{"data": null, "error": null}`)
 }
 
 // resource method: read
 function resourceRead (req, res, name) {
-  return res.end('{}')
+  return res.end(`{"data": null, "error": null}`)
 }
 
 // resource method: update
 function resourceUpdate (req, res, name) {
-  return res.end('{}')
+  return res.end(`{"data": null, "error": null}`)
 }
 
 // resource method: delete
 function resourceDelete (req, res, name) {
-  return res.end('{}')
+  return res.end(`{"data": null, "error": null}`)
 }
