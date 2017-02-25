@@ -111,30 +111,25 @@ function _save () { return null }
 
 // resource method: search
 function resourceSearch (req, res, name) {
-  console.log(req.id, req.params)
   return res.end('{}')
 }
 
 // resource method: create
 function resourceCreate (req, res, name) {
-  console.log(req.id, req.params)
   return res.end('{}')
 }
 
 // resource method: read
 function resourceRead (req, res, name) {
-  console.log(req.id, req.params)
   return res.end('{}')
 }
 
 // resource method: update
 function resourceUpdate (req, res, name) {
-  console.log(req.id, req.params)
   return res.end('{}')
 }
 
 // resource method: delete
 function resourceDelete (req, res, name) {
-  console.log(req.id, req.params)
   return res.end('{}')
 }
