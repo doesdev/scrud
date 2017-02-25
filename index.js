@@ -66,7 +66,8 @@ function handleRequest (req, res) {
   let modifier = (reqBase.match(/\/|\?$/) || [])[0] || ''
   let action = scrud[`${req.method}${modifier}`]
   if (!resource || !action) return fourOhFour(res)
-  res.end(`${resource}:${action}`)
+  res.setHeader('SCRUD', `${resource}:${action}`)
+  res.end('{}')
 }
 
 // return global logger
