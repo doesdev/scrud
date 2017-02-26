@@ -122,13 +122,20 @@ function logger () { return null }
 
 // helper: find resource
 function _find (resource, id) {
-  let attrs = {id_array: [id]}
+  let params = {id_array: [id]}
   let firstRecord = (d) => Promise.resolve(d[0])
-  return callPgFunc(`${pgPrefix}${resource}_read`, attrs).then(firstRecord)
+  return callPgFunc(`${pgPrefix}${resource}_read`, params).then(firstRecord)
 }
 
 // helper: find set of resources
-function _findAll () { return null }
+function _findAll (resource, params) {
+  Object.keys(params).forEach((k) => {
+    if (!Array.isArray(params[k])) return
+    params[`${k}_array`] = params[k]
+    delete params[k]
+  })
+  return callPgFunc(`${pgPrefix}${resource}_search`, params)
+}
 
 // helper: create resource
 function _create (resource, attrs) {
@@ -141,7 +148,11 @@ function _save () { return null }
 
 // resource method: search
 function resourceSearch (req, res, name) {
-  return res.end(`{"data": [], "error": null}`)
+  _findAll(name, req.params).then((d) => {
+    return res.end(`{"data": ${JSON.stringify(d)}, "error": null}`)
+  }).catch((err) => {
+    return res.end(`{"data": null, "error": ${JSON.stringify(err)}}`)
+  })
 }
 
 // resource method: create

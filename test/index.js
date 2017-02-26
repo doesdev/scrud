@@ -24,15 +24,23 @@ test('scrud actions are handled as expected', async (assert) => {
   await scrud.start(opts)
   let base = `http://localhost:${opts.port}${opts.base}/member`
   let sParams = `${encodeURIComponent('?first=andrew')}`
+  // create first so that we can expect data in other actions
+  let c = await axios({method: 'POST', url: `${base}`, data: postBody})
+  assert.is(c.headers.scrud, 'member:create')
+  let id = c.data.data.id
+  assert.truthy(id)
+  // search
   let s = await axios({method: 'GET', url: `${base}${sParams}`})
   assert.is(s.headers.scrud, 'member:search')
-  let c = await axios({method: 'POST', url: `${base}`, data: postBody})
-  let id = c.data.data.id
-  assert.is(c.headers.scrud, 'member:create')
+  assert.true(Array.isArray(s.data.data) && s.data.data.length > 0)
+  // read
   let r = await axios({method: 'GET', url: `${base}/${id}`})
   assert.is(r.headers.scrud, 'member:read')
+  assert.is(r.data.data.first, 'andrew')
+  // update
   let u = await axios({method: 'PUT', url: `${base}/${id}`})
   assert.is(u.headers.scrud, 'member:update')
+  // delete
   let d = await axios({method: 'DELETE', url: `${base}/${id}`})
   assert.is(d.headers.scrud, 'member:delete')
 })
