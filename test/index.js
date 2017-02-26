@@ -27,12 +27,13 @@ test('scrud actions are handled as expected', async (assert) => {
   let s = await axios({method: 'GET', url: `${base}${sParams}`})
   assert.is(s.headers.scrud, 'member:search')
   let c = await axios({method: 'POST', url: `${base}`, data: postBody})
+  let id = c.data.data.id
   assert.is(c.headers.scrud, 'member:create')
-  let r = await axios({method: 'GET', url: `${base}/1`})
+  let r = await axios({method: 'GET', url: `${base}/${id}`})
   assert.is(r.headers.scrud, 'member:read')
-  let u = await axios({method: 'PUT', url: `${base}/1`})
+  let u = await axios({method: 'PUT', url: `${base}/${id}`})
   assert.is(u.headers.scrud, 'member:update')
-  let d = await axios({method: 'DELETE', url: `${base}/1`})
+  let d = await axios({method: 'DELETE', url: `${base}/${id}`})
   assert.is(d.headers.scrud, 'member:delete')
 })
 

@@ -65,6 +65,8 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
   req.on('end', () => resolve(body ? JSON.parse(body) : {}))
 })
 
+const noIdErr = () => JSON.stringify(new Error('no id passed'))
+
 // exports
 module.exports = {register, start, logger, _find, _findAll, _create, _save}
 
@@ -119,7 +121,11 @@ function handleRequest (req, res) {
 function logger () { return null }
 
 // helper: find resource
-function _find () { return null }
+function _find (resource, id) {
+  let attrs = {id_array: [id]}
+  let firstRecord = (d) => Promise.resolve(d[0])
+  return callPgFunc(`${pgPrefix}${resource}_read`, attrs).then(firstRecord)
+}
 
 // helper: find set of resources
 function _findAll () { return null }
@@ -152,7 +158,14 @@ function resourceCreate (req, res, name) {
 
 // resource method: read
 function resourceRead (req, res, name) {
-  return res.end(`{"data": null, "error": null}`)
+  if (!req.id && req.id !== 0) {
+    return res.end(`{"data": null, "error": ${noIdErr()}}`)
+  }
+  _find(name, req.id).then((d) => {
+    return res.end(`{"data": ${JSON.stringify(d)}, "error": null}`)
+  }).catch((err) => {
+    return res.end(`{"data": null, "error": ${JSON.stringify(err)}}`)
+  })
 }
 
 // resource method: update
