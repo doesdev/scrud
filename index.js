@@ -2,6 +2,7 @@
 
 // setup
 const http = require('http')
+const Pg = require('pg').Pool
 const tinyParams = require('tiny-params')
 const port = process.env.PORT || process.env.port || 8091
 const handlers = {
@@ -23,11 +24,12 @@ const scrud = {
 
 // globals
 let server
+let pgPool
 let base = ''
 let baseRgx = new RegExp(`^/?${base}/`)
 let resources = {}
 
-// helpers
+// local helpers
 const cleanPath = (url) => {
   return decodeURIComponent(url).replace(baseRgx, '').replace(/\/$/, '')
 }
@@ -35,6 +37,19 @@ const cleanPath = (url) => {
 const parseId = (url) => {
   let id = (url.match(/\/(.+?)(\/|\?|$)/) || [])[1]
   return (id || '').match(/^\d+$/) ? parseInt(id, 10) : id || null
+}
+
+const pgRun = (query, args) => {
+  if (!pgPool) return Promise.reject(new Error('no database configured'))
+  return new Promise((resolve, reject) => {
+    pgPool.connect((err, client, done) => {
+      if (err) return reject(err)
+      client.query(query, args, (err, result) => {
+        done(err)
+        return err ? reject(err) : resolve(result.rows)
+      })
+    })
+  })
 }
 
 // exports
@@ -56,6 +71,7 @@ function start (opts = {}) {
   return new Promise((resolve, reject) => {
     server = http.createServer(handleRequest)
     server.listen(opts.port || port)
+    if (opts.postgres) pgPool = new Pg(opts.postgres)
     return resolve(server)
   })
 }
