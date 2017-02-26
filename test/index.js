@@ -27,7 +27,6 @@ test('scrud actions are handled as expected', async (assert) => {
   let s = await axios({method: 'GET', url: `${base}${sParams}`})
   assert.is(s.headers.scrud, 'member:search')
   let c = await axios({method: 'POST', url: `${base}`, data: postBody})
-  console.log(c.data)
   assert.is(c.headers.scrud, 'member:create')
   let r = await axios({method: 'GET', url: `${base}/1`})
   assert.is(r.headers.scrud, 'member:read')
