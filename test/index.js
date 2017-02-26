@@ -13,14 +13,21 @@ try {
 
 test('scrud actions are handled as expected', async (assert) => {
   await scrud.register('member')
-  let opts = {port: 8092, base: '/api'}
+  let postBody = {
+    first: 'andrew',
+    last: 'carpenter',
+    zip: 37615,
+    email: 'andrew@audioinhd.com'
+  }
+  let opts = {port: 8092, base: '/api', namespace: 'scrud'}
   Object.assign(opts, secrets)
   await scrud.start(opts)
   let base = `http://localhost:${opts.port}${opts.base}/member`
   let sParams = `${encodeURIComponent('?first=andrew')}`
   let s = await axios({method: 'GET', url: `${base}${sParams}`})
   assert.is(s.headers.scrud, 'member:search')
-  let c = await axios({method: 'POST', url: `${base}`})
+  let c = await axios({method: 'POST', url: `${base}`, data: postBody})
+  console.log(c.data)
   assert.is(c.headers.scrud, 'member:create')
   let r = await axios({method: 'GET', url: `${base}/1`})
   assert.is(r.headers.scrud, 'member:read')

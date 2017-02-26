@@ -25,8 +25,10 @@ const scrud = {
 // globals
 let server
 let pgPool
+let pgPrefix = ''
 let base = ''
 let baseRgx = new RegExp(`^/?${base}/`)
+let maxBodyBytes = 1e6
 let resources = {}
 
 // local helpers
@@ -39,18 +41,29 @@ const parseId = (url) => {
   return (id || '').match(/^\d+$/) ? parseInt(id, 10) : id || null
 }
 
-const pgRun = (query, args) => {
+const callPgFunc = (name, params) => {
+  let q = `SELECT * FROM ${name}($1);`
   if (!pgPool) return Promise.reject(new Error('no database configured'))
   return new Promise((resolve, reject) => {
     pgPool.connect((err, client, done) => {
       if (err) return reject(err)
-      client.query(query, args, (err, result) => {
+      client.query(q, [params], (err, result) => {
         done(err)
-        return err ? reject(err) : resolve(result.rows)
+        if (err) return reject(err)
+        resolve((result.rows[0] || {})[name] ? result.rows[0][name] : [])
       })
     })
   })
 }
+
+const bodyParse = (req) => new Promise((resolve, reject) => {
+  let body = ''
+  req.on('data', (d) => {
+    body += d.toString()
+    if (body.length > maxBodyBytes) return reject(new Error('body too large'))
+  })
+  req.on('end', () => resolve(body ? JSON.parse(body) : {}))
+})
 
 // exports
 module.exports = {register, start, logger, _find, _findAll, _create, _save}
@@ -66,6 +79,8 @@ function register (name, opts) {
 
 // start server
 function start (opts = {}) {
+  if (opts.namespace) pgPrefix = `${opts.namespace.toLowerCase()}_`
+  if (opts.maxBodyBytes) maxBodyBytes = opts.maxBodyBytes
   base = opts.base
   baseRgx = new RegExp(`^/?${base}/`)
   return new Promise((resolve, reject) => {
@@ -94,6 +109,9 @@ function handleRequest (req, res) {
   res.setHeader('SCRUD', `${resource.name}:${action}`)
   req.id = parseId(url)
   req.params = tinyParams(url)
+  req.once('error', (err) => {
+    return res.end(`{"data": null, "error": ${JSON.stringify(err)}}`)
+  })
   return (resource[action] || handlers[action])(req, res, resource.name)
 }
 
@@ -107,7 +125,10 @@ function _find () { return null }
 function _findAll () { return null }
 
 // helper: create resource
-function _create () { return null }
+function _create (resource, attrs) {
+  let firstRecord = (d) => Promise.resolve(d[0])
+  return callPgFunc(`${pgPrefix}${resource}_create`, attrs).then(firstRecord)
+}
 
 // helper: update resource
 function _save () { return null }
@@ -119,7 +140,14 @@ function resourceSearch (req, res, name) {
 
 // resource method: create
 function resourceCreate (req, res, name) {
-  return res.end(`{"data": null, "error": null}`)
+  bodyParse(req).then((body) => {
+    req.params = Object.assign(body, req.params)
+    _create(name, req.params).then((d) => {
+      return res.end(`{"data": ${JSON.stringify(d)}, "error": null}`)
+    }).catch((err) => {
+      return res.end(`{"data": null, "error": ${JSON.stringify(err)}}`)
+    })
+  })
 }
 
 // resource method: read
