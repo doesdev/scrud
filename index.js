@@ -68,7 +68,16 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
 const noIdErr = () => JSON.stringify(new Error('no id passed'))
 
 // exports
-module.exports = {register, start, logger, _find, _findAll, _create, _save}
+module.exports = {
+  register,
+  start,
+  logger,
+  _find,
+  _findAll,
+  _create,
+  _save,
+  _destroy
+}
 
 // register resource
 function register (name, opts) {
@@ -122,6 +131,7 @@ function logger () { return null }
 
 // helper: find resource
 function _find (resource, id) {
+  if (!id && id !== 0) return Promise.reject(noIdErr())
   let params = {id_array: [id]}
   let firstRecord = (d) => Promise.resolve(d[0])
   return callPgFunc(`${pgPrefix}${resource}_read`, params).then(firstRecord)
@@ -144,7 +154,18 @@ function _create (resource, attrs) {
 }
 
 // helper: update resource
-function _save () { return null }
+function _save (resource, id, attrs) {
+  if (!id && id !== 0) return Promise.reject(noIdErr())
+  attrs.id = id
+  let firstRecord = (d) => Promise.resolve(d[0])
+  return callPgFunc(`${pgPrefix}${resource}_update`, attrs).then(firstRecord)
+}
+
+// helper: delete resource
+function _destroy (resource, id) {
+  if (!id && id !== 0) return Promise.reject(noIdErr())
+  return callPgFunc(`${pgPrefix}${resource}_delete`, {id})
+}
 
 // resource method: search
 function resourceSearch (req, res, name) {
@@ -169,9 +190,6 @@ function resourceCreate (req, res, name) {
 
 // resource method: read
 function resourceRead (req, res, name) {
-  if (!req.id && req.id !== 0) {
-    return res.end(`{"data": null, "error": ${noIdErr()}}`)
-  }
   _find(name, req.id).then((d) => {
     return res.end(`{"data": ${JSON.stringify(d)}, "error": null}`)
   }).catch((err) => {
@@ -181,10 +199,21 @@ function resourceRead (req, res, name) {
 
 // resource method: update
 function resourceUpdate (req, res, name) {
-  return res.end(`{"data": null, "error": null}`)
+  bodyParse(req).then((body) => {
+    req.params = Object.assign(body, req.params)
+    _save(name, req.id, req.params).then((d) => {
+      return res.end(`{"data": ${JSON.stringify(d)}, "error": null}`)
+    }).catch((err) => {
+      return res.end(`{"data": null, "error": ${JSON.stringify(err)}}`)
+    })
+  })
 }
 
 // resource method: delete
 function resourceDelete (req, res, name) {
-  return res.end(`{"data": null, "error": null}`)
+  _destroy(name, req.id).then((d) => {
+    return res.end(`{"data": "success", "error": null}`)
+  }).catch((err) => {
+    return res.end(`{"data": null, "error": ${JSON.stringify(err)}}`)
+  })
 }

@@ -16,9 +16,10 @@ test('scrud actions are handled as expected', async (assert) => {
   let postBody = {
     first: 'andrew',
     last: 'carpenter',
-    zip: 37615,
+    zip: 37601,
     email: 'andrew@audioinhd.com'
   }
+  let putBody = {zip: 37615}
   let opts = {port: 8092, base: '/api', namespace: 'scrud'}
   Object.assign(opts, secrets)
   await scrud.start(opts)
@@ -36,13 +37,15 @@ test('scrud actions are handled as expected', async (assert) => {
   // read
   let r = await axios({method: 'GET', url: `${base}/${id}`})
   assert.is(r.headers.scrud, 'member:read')
-  assert.is(r.data.data.first, 'andrew')
+  assert.is(r.data.data.zip, '37601')
   // update
-  let u = await axios({method: 'PUT', url: `${base}/${id}`})
+  let u = await axios({method: 'PUT', url: `${base}/${id}`, data: putBody})
   assert.is(u.headers.scrud, 'member:update')
+  assert.is(u.data.data.zip, '37615')
   // delete
   let d = await axios({method: 'DELETE', url: `${base}/${id}`})
   assert.is(d.headers.scrud, 'member:delete')
+  assert.is(d.data.data, 'success')
 })
 
 test('register returns resource object', async (assert) => {
