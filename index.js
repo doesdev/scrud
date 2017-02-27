@@ -27,6 +27,7 @@ let server
 let pgPool
 let pgPrefix = ''
 let base = ''
+let authenticate
 let baseRgx = new RegExp(`^/?${base}/`)
 let maxBodyBytes = 1e6
 let resources = {}
@@ -65,6 +66,20 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
   req.on('end', () => resolve(body ? JSON.parse(body) : {}))
 })
 
+const sendData = (res, data) => {
+  return res.end(`{"data": ${JSON.stringify(data)}, "error": null}`)
+}
+
+const sendErr = (res, err = new Error(), code = 500) => {
+  res.code = code
+  err = err instanceof Error ? (err.message || err.name) : err.toString()
+  return res.end(`{"data": null, "error": "${err}"}`)
+}
+
+const fourOhFour = (res) => {
+  return sendErr(res, new Error(`no match for requested route`, 404))
+}
+
 const noIdErr = () => JSON.stringify(new Error('no id passed'))
 
 // exports
@@ -80,10 +95,10 @@ module.exports = {
 }
 
 // register resource
-function register (name, opts) {
+function register (name, opts = {}) {
   if (!name) return Promise.reject(new Error(`no name specified in register`))
   return new Promise((resolve, reject) => {
-    let r = resources[name] = {name}
+    let r = resources[name] = Object.assign(opts, {name})
     return resolve(r)
   })
 }
@@ -92,6 +107,7 @@ function register (name, opts) {
 function start (opts = {}) {
   if (opts.namespace) pgPrefix = `${opts.namespace.toLowerCase()}_`
   if (opts.maxBodyBytes) maxBodyBytes = opts.maxBodyBytes
+  if (opts.authenticate) authenticate = opts.authenticate
   base = opts.base
   baseRgx = new RegExp(`^/?${base}/`)
   return new Promise((resolve, reject) => {
@@ -100,12 +116,6 @@ function start (opts = {}) {
     if (opts.postgres) pgPool = new Pg(opts.postgres)
     return resolve(server)
   })
-}
-
-// handle 404
-function fourOhFour (res) {
-  res.statusCode = 404
-  res.end(`{"error": "no match for requested route"}`)
 }
 
 // request handler
@@ -120,9 +130,7 @@ function handleRequest (req, res) {
   res.setHeader('SCRUD', `${resource.name}:${action}`)
   req.id = parseId(url)
   req.params = tinyParams(url)
-  req.once('error', (err) => {
-    return res.end(`{"data": null, "error": ${JSON.stringify(err)}}`)
-  })
+  req.once('error', (err) => sendErr(res, err))
   return (resource[action] || handlers[action])(req, res, resource.name)
 }
 
@@ -170,10 +178,8 @@ function _destroy (resource, id) {
 // resource method: search
 function resourceSearch (req, res, name) {
   _findAll(name, req.params).then((d) => {
-    return res.end(`{"data": ${JSON.stringify(d)}, "error": null}`)
-  }).catch((err) => {
-    return res.end(`{"data": null, "error": ${JSON.stringify(err)}}`)
-  })
+    return sendData(res, d)
+  }).catch((e) => sendErr(res, e))
 }
 
 // resource method: create
@@ -181,20 +187,16 @@ function resourceCreate (req, res, name) {
   bodyParse(req).then((body) => {
     req.params = Object.assign(body, req.params)
     _create(name, req.params).then((d) => {
-      return res.end(`{"data": ${JSON.stringify(d)}, "error": null}`)
-    }).catch((err) => {
-      return res.end(`{"data": null, "error": ${JSON.stringify(err)}}`)
-    })
+      return sendData(res, d)
+    }).catch((err) => sendErr(res, err))
   })
 }
 
 // resource method: read
 function resourceRead (req, res, name) {
   _find(name, req.id).then((d) => {
-    return res.end(`{"data": ${JSON.stringify(d)}, "error": null}`)
-  }).catch((err) => {
-    return res.end(`{"data": null, "error": ${JSON.stringify(err)}}`)
-  })
+    return sendData(res, d)
+  }).catch((err) => sendErr(res, err))
 }
 
 // resource method: update
@@ -202,18 +204,14 @@ function resourceUpdate (req, res, name) {
   bodyParse(req).then((body) => {
     req.params = Object.assign(body, req.params)
     _save(name, req.id, req.params).then((d) => {
-      return res.end(`{"data": ${JSON.stringify(d)}, "error": null}`)
-    }).catch((err) => {
-      return res.end(`{"data": null, "error": ${JSON.stringify(err)}}`)
-    })
+      return sendData(res, d)
+    }).catch((err) => sendErr(res, err))
   })
 }
 
 // resource method: delete
 function resourceDelete (req, res, name) {
   _destroy(name, req.id).then((d) => {
-    return res.end(`{"data": "success", "error": null}`)
-  }).catch((err) => {
-    return res.end(`{"data": null, "error": ${JSON.stringify(err)}}`)
-  })
+    return sendData(res, 'success')
+  }).catch((err) => sendErr(res, err))
 }
