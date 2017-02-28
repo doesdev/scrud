@@ -94,6 +94,7 @@ const noIdErr = () => JSON.stringify(new Error('no id passed'))
 module.exports = {
   register,
   start,
+  _authenticate,
   _find,
   _findAll,
   _create,
@@ -142,26 +143,32 @@ function handleRequest (req, res) {
   req.once('error', (err) => sendErr(res, err))
   let handler = (resource[action] || handlers[action])
   let jwt = (req.headers.authorization || '').replace(/^Bearer\s/, '')
-  authenticate(jwt).then((authData) => {
+  _authenticate(jwt).then((authData) => {
     req.auth = req.params.auth = authData
     handler(req, res, resource.name)
   }).catch((err) => fourOhOne(res, err))
 }
 
-function authenticate (jwt) {
+function _authenticate (jwt) {
   let key = jwtOpts.secret || jwtOpts.publicKey
   if (!jwtOpts || !key) return Promise.resolve()
   return new Promise((resolve, reject) => {
-    jsonwebtoken.verify(jwt, key, jwtOpts, (err, decoded) => {
-      return err ? reject(err) : resolve(decoded)
+    jsonwebtoken.verify(jwt, key, jwtOpts, (err, d) => {
+      if (err) reject(err)
+      let reducer = (o, k) => { o[k.toLowerCase()] = true; return o }
+      d.is = (d.roles || []).reduce(reducer, {})
+      d.can = (d.permit || []).reduce(reducer, {})
+      delete d.roles
+      delete d.permit
+      return err ? reject(err) : resolve(d)
     })
   })
 }
 
 // helper: find resource
-function _find (resource, id) {
+function _find (resource, id, params) {
   if (!id && id !== 0) return Promise.reject(noIdErr())
-  let params = {id_array: [id]}
+  params.id_array = [id]
   let firstRecord = (d) => Promise.resolve(d[0])
   return callPgFunc(`${pgPrefix}${resource}_read`, params).then(firstRecord)
 }
@@ -177,23 +184,24 @@ function _findAll (resource, params) {
 }
 
 // helper: create resource
-function _create (resource, attrs) {
+function _create (resource, params) {
   let firstRecord = (d) => Promise.resolve(d[0])
-  return callPgFunc(`${pgPrefix}${resource}_create`, attrs).then(firstRecord)
+  return callPgFunc(`${pgPrefix}${resource}_create`, params).then(firstRecord)
 }
 
 // helper: update resource
-function _save (resource, id, attrs) {
+function _save (resource, id, params) {
   if (!id && id !== 0) return Promise.reject(noIdErr())
-  attrs.id = id
+  params.id = id
   let firstRecord = (d) => Promise.resolve(d[0])
-  return callPgFunc(`${pgPrefix}${resource}_update`, attrs).then(firstRecord)
+  return callPgFunc(`${pgPrefix}${resource}_update`, params).then(firstRecord)
 }
 
 // helper: delete resource
-function _destroy (resource, id) {
+function _destroy (resource, id, params) {
   if (!id && id !== 0) return Promise.reject(noIdErr())
-  return callPgFunc(`${pgPrefix}${resource}_delete`, {id})
+  params.id = id
+  return callPgFunc(`${pgPrefix}${resource}_delete`, params)
 }
 
 // resource method: search
@@ -215,7 +223,7 @@ function resourceCreate (req, res, name) {
 
 // resource method: read
 function resourceRead (req, res, name) {
-  _find(name, req.id).then((d) => {
+  _find(name, req.id, req.params).then((d) => {
     return sendData(res, d)
   }).catch((err) => sendErr(res, err))
 }
@@ -232,7 +240,7 @@ function resourceUpdate (req, res, name) {
 
 // resource method: delete
 function resourceDelete (req, res, name) {
-  _destroy(name, req.id).then((d) => {
+  _destroy(name, req.id, req.params).then((d) => {
     return sendData(res, 'success')
   }).catch((err) => sendErr(res, err))
 }
