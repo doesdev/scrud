@@ -22,6 +22,7 @@ const scrud = {
   'PUT/': 'update',
   'DELETE/': 'delete'
 }
+const hasBody = ['create', 'update']
 
 // globals
 let logger
@@ -149,7 +150,11 @@ function handleRequest (req, res) {
   let jwt = (headers.authorization || '').replace(/^Bearer\s/, '')
   _authenticate(jwt).then((authData) => {
     req.auth = req.params.auth = authData
-    handler(req, res, resource.name)
+    if (hasBody.indexOf(action) === -1) return handler(req, res, resource.name)
+    bodyParse(req).then((body) => {
+      req.params = Object.assign(body, req.params)
+      return handler(req, res, resource.name)
+    })
   }).catch((err) => fourOhOne(res, err))
 }
 
@@ -228,12 +233,9 @@ function resourceSearch (req, res, name) {
 
 // resource method: create
 function resourceCreate (req, res, name) {
-  bodyParse(req).then((body) => {
-    req.params = Object.assign(body, req.params)
-    _create(name, req.params).then((d) => {
-      return sendData(res, d)
-    }).catch((err) => sendErr(res, err))
-  })
+  _create(name, req.params).then((d) => {
+    return sendData(res, d)
+  }).catch((err) => sendErr(res, err))
 }
 
 // resource method: read
@@ -245,12 +247,9 @@ function resourceRead (req, res, name) {
 
 // resource method: update
 function resourceUpdate (req, res, name) {
-  bodyParse(req).then((body) => {
-    req.params = Object.assign(body, req.params)
-    _save(name, req.id, req.params).then((d) => {
-      return sendData(res, d)
-    }).catch((err) => sendErr(res, err))
-  })
+  _save(name, req.id, req.params).then((d) => {
+    return sendData(res, d)
+  }).catch((err) => sendErr(res, err))
 }
 
 // resource method: delete
