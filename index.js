@@ -143,7 +143,7 @@ function handleRequest (req, res) {
   let handler = (resource[action] || handlers[action])
   let jwt = (req.headers.authorization || '').replace(/^Bearer\s/, '')
   authenticate(jwt).then((authData) => {
-    req.auth = authData
+    req.auth = req.params.auth = authData
     handler(req, res, resource.name)
   }).catch((err) => fourOhOne(res, err))
 }
