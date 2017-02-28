@@ -140,9 +140,12 @@ function handleRequest (req, res) {
   res.setHeader('SCRUD', `${resource.name}:${action}`)
   req.id = parseId(url)
   req.params = tinyParams(url)
+  let headers = req.headers || {}
+  let connection = req.connection || {}
+  req.params.ip = headers['x-forwarded-for'] || connection.remoteAddress
   req.once('error', (err) => sendErr(res, err))
   let handler = (resource[action] || handlers[action])
-  let jwt = (req.headers.authorization || '').replace(/^Bearer\s/, '')
+  let jwt = (headers.authorization || '').replace(/^Bearer\s/, '')
   _authenticate(jwt).then((authData) => {
     req.auth = req.params.auth = authData
     handler(req, res, resource.name)
