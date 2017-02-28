@@ -135,6 +135,7 @@ function handleRequest (req, res) {
   let modifier = matches[2]
   let action = scrud[`${req.method}${modifier}`]
   if (!resource || !action) return fourOhFour(res)
+  res.setHeader('Content-Type', 'application/json')
   res.setHeader('SCRUD', `${resource.name}:${action}`)
   req.id = parseId(url)
   req.params = tinyParams(url)
