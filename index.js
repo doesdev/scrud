@@ -3,6 +3,7 @@
 // setup
 const http = require('http')
 const Pg = require('pg').Pool
+const jsonwebtoken = require('jsonwebtoken')
 const tinyParams = require('tiny-params')
 const port = process.env.PORT || process.env.port || 8091
 const handlers = {
@@ -23,11 +24,10 @@ const scrud = {
 }
 
 // globals
-let server
 let pgPool
+let jwtOpts
 let pgPrefix = ''
 let base = ''
-let authenticate
 let baseRgx = new RegExp(`^/?${base}/`)
 let maxBodyBytes = 1e6
 let resources = {}
@@ -76,8 +76,12 @@ const sendErr = (res, err = new Error(), code = 500) => {
   return res.end(`{"data": null, "error": "${err}"}`)
 }
 
-const fourOhFour = (res) => {
-  return sendErr(res, new Error(`no match for requested route`, 404))
+const fourOhOne = (res, err = new Error(`unable to auhenticate request`)) => {
+  return sendErr(res, err, 401)
+}
+
+const fourOhFour = (res, err = new Error(`no match for requested route`)) => {
+  return sendErr(res, err, 404)
 }
 
 const noIdErr = () => JSON.stringify(new Error('no id passed'))
@@ -107,11 +111,11 @@ function register (name, opts = {}) {
 function start (opts = {}) {
   if (opts.namespace) pgPrefix = `${opts.namespace.toLowerCase()}_`
   if (opts.maxBodyBytes) maxBodyBytes = opts.maxBodyBytes
-  if (opts.authenticate) authenticate = opts.authenticate
-  base = opts.base
+  if (opts.jsonwebtoken) jwtOpts = opts.jsonwebtoken
+  if (opts.base) base = opts.base
   baseRgx = new RegExp(`^/?${base}/`)
   return new Promise((resolve, reject) => {
-    server = http.createServer(handleRequest)
+    let server = http.createServer(handleRequest)
     server.listen(opts.port || port)
     if (opts.postgres) pgPool = new Pg(opts.postgres)
     return resolve(server)
@@ -131,11 +135,26 @@ function handleRequest (req, res) {
   req.id = parseId(url)
   req.params = tinyParams(url)
   req.once('error', (err) => sendErr(res, err))
-  return (resource[action] || handlers[action])(req, res, resource.name)
+  let handler = (resource[action] || handlers[action])
+  let jwt = (req.headers.authorization || '').replace(/^Bearer\s/, '')
+  authenticate(jwt).then((authData) => {
+    req.auth = authData
+    handler(req, res, resource.name)
+  }).catch((err) => fourOhOne(res, err))
 }
 
 // return global logger
 function logger () { return null }
+
+function authenticate (jwt) {
+  let key = jwtOpts.secret || jwtOpts.publicKey
+  if (!jwtOpts || !key) return Promise.resolve()
+  return new Promise((resolve, reject) => {
+    jsonwebtoken.verify(jwt, key, jwtOpts, (err, decoded) => {
+      return err ? reject(err) : resolve(decoded)
+    })
+  })
+}
 
 // helper: find resource
 function _find (resource, id) {
