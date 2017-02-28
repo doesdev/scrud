@@ -94,6 +94,7 @@ const noIdErr = () => JSON.stringify(new Error('no id passed'))
 module.exports = {
   register,
   start,
+  _genToken,
   _authenticate,
   _find,
   _findAll,
@@ -150,6 +151,17 @@ function handleRequest (req, res) {
     req.auth = req.params.auth = authData
     handler(req, res, resource.name)
   }).catch((err) => fourOhOne(res, err))
+}
+
+function _genToken (payload = {}) {
+  let key = jwtOpts.secret || jwtOpts.privateKey
+  let noOpts = () => new Error('missing required jsonwebtoken opts')
+  if (!jwtOpts || !key) return Promise.reject(noOpts())
+  return new Promise((resolve, reject) => {
+    jsonwebtoken.sign(payload, key, jwtOpts, (err, token) => {
+      return err ? reject(err) : resolve(token)
+    })
+  })
 }
 
 function _authenticate (jwt) {
