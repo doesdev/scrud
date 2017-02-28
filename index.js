@@ -23,6 +23,17 @@ const scrud = {
   'DELETE/': 'delete'
 }
 const hasBody = ['create', 'update']
+const wlSign = [
+  'algorithm',
+  'expiresIn',
+  'notBefore',
+  'audience',
+  'issuer',
+  'jwtid',
+  'subject',
+  'noTimestamp',
+  'header'
+]
 
 // globals
 let logger
@@ -71,6 +82,12 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
 })
 
 const noIdErr = () => JSON.stringify(new Error('no id passed'))
+
+const filterObj = (obj, ary) => {
+  let base = {}
+  ary.forEach((o) => { base[o] = obj[o] })
+  return base
+}
 
 // exports
 module.exports = {
@@ -166,8 +183,9 @@ function genToken (payload = {}) {
   let key = jwtOpts.secret || jwtOpts.privateKey
   let noOpts = () => new Error('missing required jsonwebtoken opts')
   if (!jwtOpts || !key) return Promise.reject(noOpts())
+  let opts = filterObj(jwtOpts, wlSign)
   return new Promise((resolve, reject) => {
-    jsonwebtoken.sign(payload, key, jwtOpts, (err, token) => {
+    jsonwebtoken.sign(payload, key, opts, (err, token) => {
       return err ? reject(err) : resolve(token)
     })
   })
