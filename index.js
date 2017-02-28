@@ -69,7 +69,7 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
   req.on('end', () => resolve(body ? JSON.parse(body) : {}))
 })
 
-const sendData = (res, data) => {
+const sendData = (res, data = null) => {
   return res.end(`{"data": ${JSON.stringify(data)}, "error": null}`)
 }
 
