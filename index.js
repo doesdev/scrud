@@ -24,6 +24,7 @@ const scrud = {
 }
 
 // globals
+let logger
 let pgPool
 let jwtOpts
 let pgPrefix = ''
@@ -33,6 +34,8 @@ let maxBodyBytes = 1e6
 let resources = {}
 
 // local helpers
+const logIt = (e) => typeof logger === 'function' ? logger(e) : console.log(e)
+
 const cleanPath = (url) => {
   return decodeURIComponent(url).replace(baseRgx, '').replace(/\/$/, '')
 }
@@ -72,6 +75,7 @@ const sendData = (res, data) => {
 
 const sendErr = (res, err = new Error(), code = 500) => {
   res.code = code
+  logIt(err, 'fatal')
   err = err instanceof Error ? (err.message || err.name) : err.toString()
   return res.end(`{"data": null, "error": "${err}"}`)
 }
@@ -90,7 +94,6 @@ const noIdErr = () => JSON.stringify(new Error('no id passed'))
 module.exports = {
   register,
   start,
-  logger,
   _find,
   _findAll,
   _create,
@@ -112,6 +115,7 @@ function start (opts = {}) {
   if (opts.namespace) pgPrefix = `${opts.namespace.toLowerCase()}_`
   if (opts.maxBodyBytes) maxBodyBytes = opts.maxBodyBytes
   if (opts.jsonwebtoken) jwtOpts = opts.jsonwebtoken
+  if (opts.logger) base = opts.logger
   if (opts.base) base = opts.base
   baseRgx = new RegExp(`^/?${base}/`)
   return new Promise((resolve, reject) => {
@@ -142,9 +146,6 @@ function handleRequest (req, res) {
     handler(req, res, resource.name)
   }).catch((err) => fourOhOne(res, err))
 }
-
-// return global logger
-function logger () { return null }
 
 function authenticate (jwt) {
   let key = jwtOpts.secret || jwtOpts.publicKey

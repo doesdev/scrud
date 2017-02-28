@@ -81,7 +81,6 @@ async function main () {
 */
 
 /* GLOBAL HELPERS
-const logger = scrud.logger // {debug, info, warn, fatal}
 let record = await scrud._find('some-resource', {id: 1})
 let records = await scrud._findAll('some-resource', {name: 'jerry'})
 let newRecord = await scrud._create('some-resource', {name: 'jimmy'})
