@@ -70,38 +70,23 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
   req.on('end', () => resolve(body ? JSON.parse(body) : {}))
 })
 
-const sendData = (res, data = null) => {
-  return res.end(`{"data": ${JSON.stringify(data)}, "error": null}`)
-}
-
-const sendErr = (res, err = new Error(), code = 500) => {
-  res.code = code
-  logIt(err, 'fatal')
-  err = err instanceof Error ? (err.message || err.name) : err.toString()
-  return res.end(`{"data": null, "error": "${err}"}`)
-}
-
-const fourOhOne = (res, err = new Error(`unable to auhenticate request`)) => {
-  return sendErr(res, err, 401)
-}
-
-const fourOhFour = (res, err = new Error(`no match for requested route`)) => {
-  return sendErr(res, err, 404)
-}
-
 const noIdErr = () => JSON.stringify(new Error('no id passed'))
 
 // exports
 module.exports = {
   register,
   start,
-  _genToken,
-  _authenticate,
-  _find,
-  _findAll,
-  _create,
-  _save,
-  _destroy
+  sendData,
+  sendErr,
+  fourOhOne,
+  fourOhFour,
+  genToken,
+  authenticate,
+  find,
+  findAll,
+  create,
+  save,
+  destroy
 }
 
 // register resource
@@ -148,7 +133,7 @@ function handleRequest (req, res) {
   req.once('error', (err) => sendErr(res, err))
   let handler = (resource[action] || handlers[action])
   let jwt = (headers.authorization || '').replace(/^Bearer\s/, '')
-  _authenticate(jwt).then((authData) => {
+  authenticate(jwt).then((authData) => {
     req.auth = req.params.auth = authData
     if (hasBody.indexOf(action) === -1) return handler(req, res, resource.name)
     bodyParse(req).then((body) => {
@@ -158,7 +143,26 @@ function handleRequest (req, res) {
   }).catch((err) => fourOhOne(res, err))
 }
 
-function _genToken (payload = {}) {
+function sendData (res, data = null) {
+  return res.end(`{"data": ${JSON.stringify(data)}, "error": null}`)
+}
+
+function sendErr (res, err = new Error(), code = 500) {
+  res.code = code
+  logIt(err, 'fatal')
+  err = err instanceof Error ? (err.message || err.name) : err.toString()
+  return res.end(`{"data": null, "error": "${err}"}`)
+}
+
+function fourOhOne (res, err = new Error(`unable to auhenticate request`)) {
+  return sendErr(res, err, 401)
+}
+
+function fourOhFour (res, err = new Error(`no match for requested route`)) {
+  return sendErr(res, err, 404)
+}
+
+function genToken (payload = {}) {
   let key = jwtOpts.secret || jwtOpts.privateKey
   let noOpts = () => new Error('missing required jsonwebtoken opts')
   if (!jwtOpts || !key) return Promise.reject(noOpts())
@@ -169,7 +173,7 @@ function _genToken (payload = {}) {
   })
 }
 
-function _authenticate (jwt) {
+function authenticate (jwt) {
   let key = jwtOpts.secret || jwtOpts.publicKey
   if (!jwtOpts || !key) return Promise.resolve()
   return new Promise((resolve, reject) => {
@@ -186,7 +190,7 @@ function _authenticate (jwt) {
 }
 
 // helper: find resource
-function _find (resource, id, params) {
+function find (resource, id, params) {
   if (!id && id !== 0) return Promise.reject(noIdErr())
   params.id_array = [id]
   let firstRecord = (d) => Promise.resolve(d[0])
@@ -194,7 +198,7 @@ function _find (resource, id, params) {
 }
 
 // helper: find set of resources
-function _findAll (resource, params) {
+function findAll (resource, params) {
   Object.keys(params).forEach((k) => {
     if (!Array.isArray(params[k])) return
     params[`${k}_array`] = params[k]
@@ -204,13 +208,13 @@ function _findAll (resource, params) {
 }
 
 // helper: create resource
-function _create (resource, params) {
+function create (resource, params) {
   let firstRecord = (d) => Promise.resolve(d[0])
   return callPgFunc(`${pgPrefix}${resource}_create`, params).then(firstRecord)
 }
 
 // helper: update resource
-function _save (resource, id, params) {
+function save (resource, id, params) {
   if (!id && id !== 0) return Promise.reject(noIdErr())
   params.id = id
   let firstRecord = (d) => Promise.resolve(d[0])
@@ -218,7 +222,7 @@ function _save (resource, id, params) {
 }
 
 // helper: delete resource
-function _destroy (resource, id, params) {
+function destroy (resource, id, params) {
   if (!id && id !== 0) return Promise.reject(noIdErr())
   params.id = id
   return callPgFunc(`${pgPrefix}${resource}_delete`, params)
@@ -226,35 +230,35 @@ function _destroy (resource, id, params) {
 
 // resource method: search
 function resourceSearch (req, res, name) {
-  _findAll(name, req.params).then((d) => {
+  findAll(name, req.params).then((d) => {
     return sendData(res, d)
   }).catch((e) => sendErr(res, e))
 }
 
 // resource method: create
 function resourceCreate (req, res, name) {
-  _create(name, req.params).then((d) => {
+  create(name, req.params).then((d) => {
     return sendData(res, d)
   }).catch((err) => sendErr(res, err))
 }
 
 // resource method: read
 function resourceRead (req, res, name) {
-  _find(name, req.id, req.params).then((d) => {
+  find(name, req.id, req.params).then((d) => {
     return sendData(res, d)
   }).catch((err) => sendErr(res, err))
 }
 
 // resource method: update
 function resourceUpdate (req, res, name) {
-  _save(name, req.id, req.params).then((d) => {
+  save(name, req.id, req.params).then((d) => {
     return sendData(res, d)
   }).catch((err) => sendErr(res, err))
 }
 
 // resource method: delete
 function resourceDelete (req, res, name) {
-  _destroy(name, req.id, req.params).then((d) => {
+  destroy(name, req.id, req.params).then((d) => {
     return sendData(res, 'success')
   }).catch((err) => sendErr(res, err))
 }
