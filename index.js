@@ -172,14 +172,14 @@ function handleRequest (req, res) {
 }
 
 function sendData (res, data = null) {
-  return res.end(`{"data": ${JSON.stringify(data)}, "error": null}`)
+  return res.end(JSON.stringify({data, error: null}))
 }
 
 function sendErr (res, err = new Error(), code = 500) {
   res.statusCode = code
   logIt(err, 'fatal')
   err = err instanceof Error ? (err.message || err.name) : err.toString()
-  return res.end(`{"data": null, "error": "${err}"}`)
+  return res.end(JSON.stringify({data: null, error: err}))
 }
 
 function fourOhOne (res, err = new Error(`unable to auhenticate request`)) {
