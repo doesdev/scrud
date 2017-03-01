@@ -165,7 +165,7 @@ function sendData (res, data = null) {
 }
 
 function sendErr (res, err = new Error(), code = 500) {
-  res.code = code
+  res.statusCode = code
   logIt(err, 'fatal')
   err = err instanceof Error ? (err.message || err.name) : err.toString()
   return res.end(`{"data": null, "error": "${err}"}`)
