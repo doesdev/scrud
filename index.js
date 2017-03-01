@@ -195,7 +195,7 @@ function authenticate (jwt) {
   let key = jwtOpts.secret || jwtOpts.publicKey
   if (!jwtOpts || !key) return Promise.resolve()
   return new Promise((resolve, reject) => {
-    jsonwebtoken.verify(jwt, key, jwtOpts, (err, d) => {
+    jsonwebtoken.verify(jwt, key, jwtOpts, (err, d = {}) => {
       if (err) reject(err)
       let reducer = (o, k) => { o[k.toLowerCase()] = true; return o }
       d.is = (d.roles || []).reduce(reducer, {})
