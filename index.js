@@ -205,12 +205,6 @@ function authenticate (jwt) {
   if (!jwtOpts || !key) return Promise.resolve()
   return new Promise((resolve, reject) => {
     jsonwebtoken.verify(jwt, key, jwtOpts, (err, d = {}) => {
-      if (err) reject(err)
-      let reducer = (o, k) => { o[k.toLowerCase()] = true; return o }
-      d.is = (d.roles || []).reduce(reducer, {})
-      d.can = (d.permit || []).reduce(reducer, {})
-      delete d.roles
-      delete d.permit
       return err ? reject(err) : resolve(d)
     })
   })
