@@ -39,6 +39,7 @@ const wlSign = [
 let logger
 let pgPool
 let jwtOpts
+let authTrans
 let pgPrefix = ''
 let base = ''
 let baseRgx = new RegExp(`^/?${base}/`)
@@ -127,6 +128,7 @@ function start (opts = {}) {
   if (opts.jsonwebtoken) jwtOpts = opts.jsonwebtoken
   if (opts.logger) base = opts.logger
   if (opts.base) base = opts.base
+  if (opts.authTrans) authTrans = opts.authTrans
   baseRgx = new RegExp(`^/?${base}/`)
   return new Promise((resolve, reject) => {
     let server = http.createServer(handleRequest)
@@ -164,7 +166,7 @@ function handleRequest (req, res) {
   }
   if (resource.skipAuth && resource.skipAuth[action]) return callHandler()
   authenticate(jwt).then((authData) => {
-    req.auth = req.params.auth = authData
+    req.auth = req.params.auth = authTrans ? authTrans(authData) : authData
     return callHandler()
   }).catch((err) => fourOhOne(res, err))
 }
