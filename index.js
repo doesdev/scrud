@@ -22,7 +22,7 @@ const scrud = {
   'PUT/': 'update',
   'DELETE/': 'delete'
 }
-const hasBody = ['create', 'update']
+const hasBody = {create: true, update: true}
 const wlSign = [
   'algorithm',
   'expiresIn',
@@ -111,6 +111,11 @@ function register (name, opts = {}) {
   if (!name) return Promise.reject(new Error(`no name specified in register`))
   return new Promise((resolve, reject) => {
     let r = resources[name] = Object.assign(opts, {name})
+    if (Array.isArray(r.skipAuth)) {
+      let skippers = {}
+      r.skipAuth.forEach((a) => { skippers[a] = true })
+      r.skipAuth = skippers
+    }
     return resolve(r)
   })
 }
@@ -150,13 +155,17 @@ function handleRequest (req, res) {
   req.once('error', (err) => sendErr(res, err))
   let handler = (resource[action] || handlers[action])
   let jwt = (headers.authorization || '').replace(/^Bearer\s/, '')
-  authenticate(jwt).then((authData) => {
-    req.auth = req.params.auth = authData
-    if (hasBody.indexOf(action) === -1) return handler(req, res, resource.name)
+  let callHandler = () => {
+    if (!hasBody[action]) return handler(req, res, resource.name)
     bodyParse(req).then((body) => {
       req.params = Object.assign(body, req.params)
       return handler(req, res, resource.name)
     })
+  }
+  if (resource.skipAuth && resource.skipAuth[action]) return callHandler()
+  authenticate(jwt).then((authData) => {
+    req.auth = req.params.auth = authData
+    return callHandler()
   }).catch((err) => fourOhOne(res, err))
 }
 
