@@ -251,37 +251,32 @@ function destroy (resource, id, params) {
   return callPgFunc(`${pgPrefix}${resource}_delete`, params)
 }
 
+// wrap resource methods for fun and profit
+function actionWrapper (p, res, data) {
+  return p.then((d) => sendData(res, data || d)).catch((e) => sendErr(res, e))
+}
+
 // resource method: search
 function resourceSearch (req, res, name) {
-  findAll(name, req.params).then((d) => {
-    return sendData(res, d)
-  }).catch((e) => sendErr(res, e))
+  return actionWrapper(findAll(name, req.params), res)
 }
 
 // resource method: create
 function resourceCreate (req, res, name) {
-  create(name, req.params).then((d) => {
-    return sendData(res, d)
-  }).catch((err) => sendErr(res, err))
+  return actionWrapper(create(name, req.params), res)
 }
 
 // resource method: read
 function resourceRead (req, res, name) {
-  find(name, req.id, req.params).then((d) => {
-    return sendData(res, d)
-  }).catch((err) => sendErr(res, err))
+  return actionWrapper(find(name, req.id, req.params), res)
 }
 
 // resource method: update
 function resourceUpdate (req, res, name) {
-  save(name, req.id, req.params).then((d) => {
-    return sendData(res, d)
-  }).catch((err) => sendErr(res, err))
+  return actionWrapper(save(name, req.id, req.params), res)
 }
 
 // resource method: delete
 function resourceDelete (req, res, name) {
-  destroy(name, req.id, req.params).then((d) => {
-    return sendData(res, 'success')
-  }).catch((err) => sendErr(res, err))
+  return actionWrapper(destroy(name, req.id, req.params), res, 'success')
 }
