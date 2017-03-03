@@ -252,31 +252,31 @@ function destroy (resource, id, params) {
 }
 
 // wrap resource methods for fun and profit
-function actionWrapper (p, res, data) {
+function actionWrapper (p, name, res, data) {
   return p.then((d) => sendData(res, data || d)).catch((e) => sendErr(res, e))
 }
 
 // resource method: search
 function resourceSearch (req, res, name) {
-  return actionWrapper(findAll(name, req.params), res)
+  return actionWrapper(findAll(name, req.params), name, res)
 }
 
 // resource method: create
 function resourceCreate (req, res, name) {
-  return actionWrapper(create(name, req.params), res)
+  return actionWrapper(create(name, req.params), name, res)
 }
 
 // resource method: read
 function resourceRead (req, res, name) {
-  return actionWrapper(find(name, req.id, req.params), res)
+  return actionWrapper(find(name, req.id, req.params), name, res)
 }
 
 // resource method: update
 function resourceUpdate (req, res, name) {
-  return actionWrapper(save(name, req.id, req.params), res)
+  return actionWrapper(save(name, req.id, req.params), name, res)
 }
 
 // resource method: delete
 function resourceDelete (req, res, name) {
-  return actionWrapper(destroy(name, req.id, req.params), res, 'success')
+  return actionWrapper(destroy(name, req.id, req.params), name, res, 'success')
 }
