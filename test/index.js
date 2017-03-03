@@ -45,7 +45,7 @@ test('scrud actions are handled as expected', async (assert) => {
   // delete
   let d = await axios({method: 'DELETE', url: `${base}/${id}`})
   assert.is(d.headers.scrud, 'member:delete')
-  assert.is(d.data.data, 'success')
+  assert.falsy(d.data.error)
 })
 
 test('register returns resource object', async (assert) => {

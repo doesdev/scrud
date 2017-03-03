@@ -7,11 +7,11 @@ const jsonwebtoken = require('jsonwebtoken')
 const tinyParams = require('tiny-params')
 const port = process.env.PORT || process.env.port || 8091
 const handlers = {
-  search: resourceSearch,
-  create: resourceCreate,
-  read: resourceRead,
-  update: resourceUpdate,
-  delete: resourceDelete
+  search: (name, req) => findAll(name, req.params),
+  create: (name, req) => create(name, req.params),
+  read: (name, req) => find(name, req.id, req.params),
+  update: (name, req) => save(name, req.id, req.params),
+  delete: (name, req) => destroy(name, req.id, req.params)
 }
 const scrud = {
   GET: 'search',
@@ -147,21 +147,22 @@ function handleRequest (req, res) {
   let modifier = matches[2]
   let action = scrud[`${req.method}${modifier}`]
   if (!resource || !action) return fourOhFour(res)
+  let name = resource.name
   res.setHeader('Content-Type', 'application/json')
-  res.setHeader('SCRUD', `${resource.name}:${action}`)
+  res.setHeader('SCRUD', `${name}:${action}`)
   req.id = parseId(url)
   req.params = tinyParams(url)
   let headers = req.headers || {}
   let connection = req.connection || {}
   req.params.ip = headers['x-forwarded-for'] || connection.remoteAddress
   req.once('error', (err) => sendErr(res, err))
-  let handler = (resource[action] || handlers[action])
+  let handler = resource[action] || actionHandler
   let jwt = (headers.authorization || '').replace(/^Bearer\s/, '')
   let callHandler = () => {
-    if (!hasBody[action]) return handler(req, res, resource.name)
+    if (!hasBody[action]) return handler(req, res, name, action)
     bodyParse(req).then((body) => {
       req.params = Object.assign(body, req.params)
-      return handler(req, res, resource.name)
+      return handler(req, res, name, action)
     })
   }
   if (resource.skipAuth && resource.skipAuth[action]) return callHandler()
@@ -172,14 +173,20 @@ function handleRequest (req, res) {
 }
 
 function sendData (res, data = null) {
-  return res.end(JSON.stringify({data, error: null}))
+  return new Promise((resolve, reject) => {
+    res.end(JSON.stringify({data, error: null}))
+    return resolve()
+  })
 }
 
 function sendErr (res, err = new Error(), code = 500) {
-  res.statusCode = code
-  logIt(err, 'fatal')
-  err = err instanceof Error ? (err.message || err.name) : err.toString()
-  return res.end(JSON.stringify({data: null, error: err}))
+  return new Promise((resolve, reject) => {
+    res.statusCode = code
+    logIt(err, 'fatal')
+    err = err instanceof Error ? (err.message || err.name) : err.toString()
+    res.end(JSON.stringify({data: null, error: err}))
+    return resolve()
+  })
 }
 
 function fourOhOne (res, err = new Error(`unable to auhenticate request`)) {
@@ -251,32 +258,15 @@ function destroy (resource, id, params) {
   return callPgFunc(`${pgPrefix}${resource}_delete`, params)
 }
 
-// wrap resource methods for fun and profit
-function actionWrapper (p, name, res, data) {
-  return p.then((d) => sendData(res, data || d)).catch((e) => sendErr(res, e))
-}
-
-// resource method: search
-function resourceSearch (req, res, name) {
-  return actionWrapper(findAll(name, req.params), name, res)
-}
-
-// resource method: create
-function resourceCreate (req, res, name) {
-  return actionWrapper(create(name, req.params), name, res)
-}
-
-// resource method: read
-function resourceRead (req, res, name) {
-  return actionWrapper(find(name, req.id, req.params), name, res)
-}
-
-// resource method: update
-function resourceUpdate (req, res, name) {
-  return actionWrapper(save(name, req.id, req.params), name, res)
-}
-
-// resource method: delete
-function resourceDelete (req, res, name) {
-  return actionWrapper(destroy(name, req.id, req.params), name, res, 'success')
+// default handler for all resource methods
+function actionHandler (req, res, name, action) {
+  let bq = resources[name].beforeQuery || {} // (req, res)
+  if (typeof bq !== 'function') bq = bq[action]
+  let bs = resources[name].beforeSend || {} // (req, res, data)
+  if (typeof bs !== 'function') bs = bs[action]
+  let act = () => handlers[action](name, req)
+  let send = (d) => sendData(res, d)
+  let finish = (d) => bs ? bs(req, res, d).then((d) => send(d)) : send(d)
+  let run = () => bq ? bq(req, res).then(act).then(finish) : act().then(finish)
+  return run().catch((e) => sendErr(res, e))
 }
