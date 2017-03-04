@@ -8,7 +8,7 @@
   "main": "index.js",
   "files": [
     "index.js",
-    "helpers"
+    "scrud.js"
   ],
   "scripts": {
     "test": "ava --verbose"
