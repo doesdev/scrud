@@ -77,34 +77,3 @@ test('instances do not intermingle', async (assert) => {
   await assert.throws(axios({method: 'GET', url: `${bBase}member_a/1`}))
   await assert.notThrows(axios({method: 'GET', url: `${bBase}member_b/1`}))
 })
-
-/* API
-const scrudOpts = {port: 8081, secret: 'someSecureString', logpath: '/logs'}
-const scrud = require('scrud')
-const handleIt = require('./some-other-resource') // same as resource obj
-
-async function main () {
-  const someResource = await scrud.register('some-resource')
-  const someOtherResource = await scrud.register('some-other-resource', handleIt)
-  await scrud.start(scrudOpts)
-}
-*/
-
-/* RESOURCE OBJECT
-{
-  name: 'some-resource',
-  // these will only show up if overrides are in place for these actions
-  search: (req, res) => Promise.resolve('done'),
-  create: (req, res) => Promise.resolve('done'),
-  read: (req, res) => Promise.resolve('done'),
-  update: (req, res) => Promise.resolve('done'),
-  delete: (req, res) => Promise.resolve('done')
-}
-*/
-
-/* GLOBAL HELPERS
-let record = await scrud._find('some-resource', {id: 1})
-let records = await scrud._findAll('some-resource', {name: 'jerry'})
-let newRecord = await scrud._create('some-resource', {name: 'jimmy'})
-let updatedRecord = await scrud._save('some-resource', {id: 1, name: 'john'})
-*/
