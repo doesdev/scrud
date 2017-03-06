@@ -140,6 +140,7 @@ function start (opts = {}) {
 
 // request handler
 function handleRequest (req, res) {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8')
   if (!baseRgx.test(req.url)) return fourOhFour(res)
   let url = cleanPath(req.url)
   let matches = url.match(/^\/?(.+?)(\/|\?|$)/) || []
@@ -148,7 +149,6 @@ function handleRequest (req, res) {
   let action = scrud[`${req.method}${modifier}`]
   if (!resource || !action) return fourOhFour(res)
   let name = resource.name
-  res.setHeader('Content-Type', 'application/json')
   res.setHeader('SCRUD', `${name}:${action}`)
   req.id = parseId(url)
   req.params = tinyParams(url)
