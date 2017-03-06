@@ -185,8 +185,12 @@ function sendData (res, data = null) {
 
 function sendErr (res, err, code = 500) {
   res.statusCode = code
-  if (!err || res.headersSent) {
+  if (res.headersSent) {
     logIt(err || new Error(`can't send error after headers sent`), 'warn')
+    return Promise.resolve()
+  }
+  if (!err) {
+    res.end(JSON.stringify({data: null, error: 'unspecified error'}))
     return Promise.resolve()
   }
   return new Promise((resolve, reject) => {
