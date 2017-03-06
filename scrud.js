@@ -160,10 +160,10 @@ function handleRequest (req, res) {
   let jwt = (headers.authorization || '').replace(/^Bearer\s/, '')
   let callHandler = () => {
     if (!hasBody[action]) return handler(req, res, name, action)
-    bodyParse(req).then((body) => {
+    return bodyParse(req).then((body) => {
       req.params = Object.assign(body, req.params)
       return handler(req, res, name, action)
-    })
+    }).catch((e) => sendErr(res, e))
   }
   if (resource.skipAuth && resource.skipAuth[action]) return callHandler()
   authenticate(jwt).then((authData) => {
@@ -173,15 +173,23 @@ function handleRequest (req, res) {
 }
 
 function sendData (res, data = null) {
+  if (res.headersSent) {
+    logIt(new Error(`can't send data after headers sent`), 'warn')
+    return Promise.resolve()
+  }
   return new Promise((resolve, reject) => {
     res.end(JSON.stringify({data, error: null}))
     return resolve()
   })
 }
 
-function sendErr (res, err = new Error(), code = 500) {
+function sendErr (res, err, code = 500) {
+  res.statusCode = code
+  if (!err || res.headersSent) {
+    logIt(err || new Error(`can't send error after headers sent`), 'warn')
+    return Promise.resolve()
+  }
   return new Promise((resolve, reject) => {
-    res.statusCode = code
     logIt(err, 'fatal')
     err = err instanceof Error ? (err.message || err.name) : err.toString()
     res.end(JSON.stringify({data: null, error: err}))
