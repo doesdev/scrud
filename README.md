@@ -7,7 +7,7 @@
 - a collection of helpers that allow you to stand up APIs rapidly
 - extremely opinionated
 - driven by PostgreSQL functions
-- all APIs revolve around SCRUD actions
+- all APIs revolve around [SCRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) actions
 - all resource actions have default handlers but can be individually overridden
 
 # who is it for
@@ -23,7 +23,7 @@ $ npm install --save scrud
 
 # api
 
-### register(name, options)
+### scrud.register(name, options)
 - Registers a resource as an API, enabling it to respond to SCRUD actions against it
 - A common pattern would be registering resources that correlate to database tables
 - Does not have to correlate to a database table
@@ -59,7 +59,7 @@ $ npm install --save scrud
     - type: `Function` - receives (http.ClientRequest, http.ServerResponse)
     - default: calls `${namespace}_${resource}_delete(IN jsonb, OUT jsonb)` PG function and responds to client with data (success) or error
 
-### start(options)
+### scrud.start(options)
 Set global options and start API server
 
 ***Returns:*** Promise which with resolves with http.Server
@@ -72,8 +72,8 @@ Set global options and start API server
   - **namespace** - *optional* - namespace to use in PG function calls (i.e. `${namespace}_${resource}_${action}`). If not set the PG function called will be `${resource}_${action}`
     - type: `String`
     - default: `null`
-  - **postgres** - *required if using DB backed actions* - configuration for [pg](https://github.com/brianc/node-postgres) connection
-    - type: `Object` matching config specs for [pg](https://github.com/brianc/node-postgres)
+  - **postgres** - *required if using DB backed actions* - configuration for [node-postgres](https://github.com/brianc/node-postgres) connection
+    - type: `Object` matching config specs for [node-postgres](https://github.com/brianc/node-postgres)
     - default: `null`
   - **jsonwebtoken** - *required for JWT authentication* - configuration for [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) connection
     - type: `Object` that contains options from both the `sign` and `verify` methods at [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken)
