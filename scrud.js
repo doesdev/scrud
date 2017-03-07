@@ -234,6 +234,7 @@ function authenticate (jwt) {
 // helper: find resource
 function find (resource, id, params) {
   if (!id && id !== 0) return Promise.reject(noIdErr())
+  params.id = id
   params.id_array = [id]
   let firstRecord = (d) => Promise.resolve(d[0])
   return callPgFunc(`${pgPrefix}${resource}_read`, params).then(firstRecord)
