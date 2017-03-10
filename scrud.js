@@ -47,7 +47,9 @@ let maxBodyBytes = 1e6
 let resources = {}
 
 // local helpers
-const logIt = (e) => typeof logger === 'function' ? logger(e) : console.log(e)
+const logIt = (e, level = 'fatal') => {
+  typeof logger === 'function' ? logger(e, level) : console.log(e)
+}
 
 const cleanPath = (url) => {
   return decodeURIComponent(url).replace(baseRgx, '').replace(/\/$/, '')
