@@ -143,6 +143,12 @@ function start (opts = {}) {
 // request handler
 function handleRequest (req, res) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
+  let headers = req.headers || {}
+  let origin = headers['origin']
+  if (origin) res.setHeader('Access-Control-Allow-Origin', origin)
+  if (req.method === 'OPTIONS' && headers['access-control-request-method']) {
+    return ackPreflight(res, origin, headers['access-control-request-headers'])
+  }
   if (!baseRgx.test(req.url)) return fourOhFour(res)
   let url = cleanPath(req.url)
   let matches = url.match(/^\/?(.+?)(\/|\?|$)/) || []
@@ -154,7 +160,6 @@ function handleRequest (req, res) {
   res.setHeader('SCRUD', `${name}:${action}`)
   req.id = parseId(url)
   req.params = tinyParams(url)
-  let headers = req.headers || {}
   let connection = req.connection || {}
   req.params.ip = headers['x-forwarded-for'] || connection.remoteAddress
   req.once('error', (err) => sendErr(res, err))
@@ -203,12 +208,19 @@ function sendErr (res, err, code = 500) {
   })
 }
 
-function fourOhOne (res, err = new Error(`unable to auhenticate request`)) {
+function fourOhOne (res, err = new Error(`unable to authenticate request`)) {
   return sendErr(res, err, 401)
 }
 
 function fourOhFour (res, err = new Error(`no match for requested route`)) {
   return sendErr(res, err, 404)
+}
+
+function ackPreflight (res, origin, allowHeaders) {
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+  if (allowHeaders) res.setHeader('Access-Control-Allow-Headers', allowHeaders)
+  res.statusCode = 200
+  res.end()
 }
 
 function genToken (payload = {}) {
