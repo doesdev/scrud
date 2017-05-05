@@ -4,7 +4,6 @@
 import test from 'ava'
 import scrud from './../index'
 import axios from 'axios'
-const headers = {origin: 'localhost'}
 const allowOrigins = ['localhost']
 let secrets
 try {
@@ -28,24 +27,24 @@ test('scrud actions are handled as expected', async (assert) => {
   let base = `http://localhost:${opts.port}${opts.base}/member`
   let sParams = `${encodeURIComponent('?first=andrew')}`
   // create first so that we can expect data in other actions
-  let c = await axios({method: 'POST', url: `${base}`, headers, data: postBody})
+  let c = await axios({method: 'POST', url: `${base}`, data: postBody})
   assert.is(c.headers.scrud, 'member:create')
   let id = c.data.data.id
   assert.truthy(id)
   // search
-  let s = await axios({method: 'GET', url: `${base}${sParams}`, headers})
+  let s = await axios({method: 'GET', url: `${base}${sParams}`})
   assert.is(s.headers.scrud, 'member:search')
   assert.true(Array.isArray(s.data.data) && s.data.data.length > 0)
   // read
-  let r = await axios({method: 'GET', url: `${base}/${id}`, headers})
+  let r = await axios({method: 'GET', url: `${base}/${id}`})
   assert.is(r.headers.scrud, 'member:read')
   assert.is(r.data.data.zip, '37601')
   // update
-  let u = await axios({method: 'PUT', url: `${base}/${id}`, headers, data: putBody})
+  let u = await axios({method: 'PUT', url: `${base}/${id}`, data: putBody})
   assert.is(u.headers.scrud, 'member:update')
   assert.is(u.data.data.zip, '37615')
   // delete
-  let d = await axios({method: 'DELETE', url: `${base}/${id}`, headers})
+  let d = await axios({method: 'DELETE', url: `${base}/${id}`})
   assert.is(d.headers.scrud, 'member:delete')
   assert.falsy(d.data.error)
 })
@@ -73,9 +72,9 @@ test('instances do not intermingle', async (assert) => {
   await aScrud.start(aOpts)
   await bScrud.start(bOpts)
   // ensure aScrud only handles it's resources
-  await assert.throws(axios({method: 'GET', headers, url: `${aBase}member_b/1`}))
-  await assert.notThrows(axios({method: 'GET', headers, url: `${aBase}member_a/1`}))
+  await assert.throws(axios({method: 'GET', url: `${aBase}member_b/1`}))
+  await assert.notThrows(axios({method: 'GET', url: `${aBase}member_a/1`}))
   // ensure bScrud only handles it's resources
-  await assert.throws(axios({method: 'GET', headers, url: `${bBase}member_a/1`}))
-  await assert.notThrows(axios({method: 'GET', headers, url: `${bBase}member_b/1`}))
+  await assert.throws(axios({method: 'GET', url: `${bBase}member_a/1`}))
+  await assert.notThrows(axios({method: 'GET', url: `${bBase}member_b/1`}))
 })

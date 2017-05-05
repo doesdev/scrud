@@ -154,7 +154,7 @@ function handleRequest (req, res) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
   let headers = req.headers || {}
   let origin = headers['origin']
-  if (!allowOrigins[origin]) return rejectPreflight(res, origin)
+  if (origin && !allowOrigins[origin]) return rejectPreflight(res, origin)
   if (origin) res.setHeader('Access-Control-Allow-Origin', origin)
   if (req.method === 'OPTIONS' && headers['access-control-request-method']) {
     return ackPreflight(res, origin, headers['access-control-request-headers'])
