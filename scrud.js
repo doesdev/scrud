@@ -102,6 +102,7 @@ module.exports = {
   start,
   sendData,
   sendErr,
+  logIt,
   fourOhOne,
   fourOhFour,
   genToken,

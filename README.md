@@ -93,6 +93,7 @@ Set global options and start API server
 - instance() - returns new instance of module [useful for multiple backends or different global options]
 - sendData(res, data) - send response data to client
 - sendErr(res, error, code) - send error to client  
+- logIt(error, logLevel) - invoke logger with error and logLevel  
 - fourOhOne(res, err) - send 401 (unauthorized) error to client  
 - fourOhFour(res, err) - send 404 (not found) error to client  
 - genToken(payload) - generate JWT token  
