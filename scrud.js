@@ -7,6 +7,7 @@ const jsonwebtoken = require('jsonwebtoken')
 const tinyParams = require('tiny-params')
 const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091
+const defaultTimeout = 120000
 const handlers = {
   search: (name, req) => findAll(name, req.params),
   create: (name, req) => create(name, req.params),
@@ -141,6 +142,7 @@ function start (opts = {}) {
   baseRgx = new RegExp(`^/?${base}/`)
   return new Promise((resolve, reject) => {
     let server = http.createServer(handleRequest)
+    server.setTimeout(opts.timeout || defaultTimeout)
     server.listen(opts.port || port)
     if (opts.postgres) pgPool = new Pg(opts.postgres)
     return resolve(server)
