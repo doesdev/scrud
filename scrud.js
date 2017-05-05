@@ -45,6 +45,7 @@ let base = ''
 let baseRgx = new RegExp(`^/?${base}/`)
 let maxBodyBytes = 1e6
 let resources = {}
+let allowOrigins = {}
 
 // local helpers
 const logIt = (e, level = 'fatal') => {
@@ -131,6 +132,9 @@ function start (opts = {}) {
   if (opts.logger) logger = opts.logger
   if (opts.base) base = opts.base
   if (opts.authTrans) authTrans = opts.authTrans
+  if (Array.isArray(opts.allowOrigins)) {
+    opts.allowOrigins.forEach((k) => { allowOrigins[k] = true })
+  }
   baseRgx = new RegExp(`^/?${base}/`)
   return new Promise((resolve, reject) => {
     let server = http.createServer(handleRequest)
@@ -145,6 +149,7 @@ function handleRequest (req, res) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
   let headers = req.headers || {}
   let origin = headers['origin']
+  if (!allowOrigins[origin]) return rejectPreflight(res, origin)
   if (origin) res.setHeader('Access-Control-Allow-Origin', origin)
   if (req.method === 'OPTIONS' && headers['access-control-request-method']) {
     return ackPreflight(res, origin, headers['access-control-request-headers'])
@@ -220,6 +225,12 @@ function ackPreflight (res, origin, allowHeaders) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
   if (allowHeaders) res.setHeader('Access-Control-Allow-Headers', allowHeaders)
   res.statusCode = 200
+  res.end()
+}
+
+function rejectPreflight (res, origin) {
+  res.setHeader('Origin', origin || '')
+  res.statusCode = 403
   res.end()
 }
 
