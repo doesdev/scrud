@@ -5,6 +5,7 @@ const http = require('http')
 const Pg = require('pg').Pool
 const jsonwebtoken = require('jsonwebtoken')
 const tinyParams = require('tiny-params')
+const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091
 const handlers = {
   search: (name, req) => findAll(name, req.params),
@@ -46,6 +47,7 @@ let baseRgx = new RegExp(`^/?${base}/`)
 let maxBodyBytes = 1e6
 let resources = {}
 let allowOrigins = {}
+let gzipThreshold = 1000
 
 // local helpers
 const logIt = (e, level = 'fatal') => {
@@ -132,6 +134,7 @@ function start (opts = {}) {
   if (opts.logger) logger = opts.logger
   if (opts.base) base = opts.base
   if (opts.authTrans) authTrans = opts.authTrans
+  if (opts.gzipThreshold) gzipThreshold = opts.gzipThreshold
   if (Array.isArray(opts.allowOrigins)) {
     opts.allowOrigins.forEach((k) => { allowOrigins[k] = true })
   }
@@ -162,6 +165,9 @@ function handleRequest (req, res) {
   let action = scrud[`${req.method}${modifier}`]
   if (!resource || !action) return fourOhFour(res)
   let name = resource.name
+  if ((headers['accept-encoding'] || '').match('gzip')) {
+    res.setHeader('Content-Encoding', 'gzip')
+  }
   res.setHeader('SCRUD', `${name}:${action}`)
   req.id = parseId(url)
   req.params = tinyParams(url)
@@ -190,8 +196,19 @@ function sendData (res, data = null) {
     return Promise.resolve()
   }
   return new Promise((resolve, reject) => {
-    res.end(JSON.stringify({data, error: null}))
-    return resolve()
+    data = JSON.stringify({data, error: null})
+    let len = Buffer.byteLength(data)
+    res.statusCode = 200
+    if (res.getHeader('content-encoding') !== 'gzip' || len < gzipThreshold) {
+      res.removeHeader('content-encoding')
+      res.end(data)
+      return resolve()
+    }
+    zlib.gzip(Buffer.from(data), (err, zipd) => {
+      if (err) return reject(sendErr(res, err))
+      res.end(zipd)
+      return resolve()
+    })
   })
 }
 
