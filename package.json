@@ -1,6 +1,6 @@
 {
   "name": "scrud",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Super opinionated, minimalistic, PG centric API fabric",
   "engines": {
     "node": ">=6.0.0"

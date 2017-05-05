@@ -290,7 +290,6 @@ function findAll (resource, params) {
   Object.keys(params).forEach((k) => {
     if (!Array.isArray(params[k])) return
     params[`${k}_array`] = params[k]
-    delete params[k]
   })
   return callPgFunc(`${pgPrefix}${resource}_search`, params)
 }
