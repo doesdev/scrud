@@ -66,7 +66,7 @@ const parseId = (url) => {
 
 const callPgFunc = (name, params) => {
   let q = `SELECT * FROM ${name}($1);`
-  if (!pgPool) return Promise.reject(new Error('no database configured'))
+  if (!pgPool) return Promise.reject(new Error('No database configured'))
   return new Promise((resolve, reject) => {
     pgPool.connect((err, client, done) => {
       if (err) return reject(err)
@@ -83,12 +83,12 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
   let body = ''
   req.on('data', (d) => {
     body += d.toString()
-    if (body.length > maxBodyBytes) return reject(new Error('body too large'))
+    if (body.length > maxBodyBytes) return reject(new Error('Body too large'))
   })
   req.on('end', () => resolve(body ? JSON.parse(body) : {}))
 })
 
-const noIdErr = () => JSON.stringify(new Error('no id passed'))
+const noIdErr = () => JSON.stringify(new Error('No id passed'))
 
 const filterObj = (obj, ary) => {
   let base = {}
@@ -116,7 +116,7 @@ module.exports = {
 
 // register resource
 function register (name, opts = {}) {
-  if (!name) return Promise.reject(new Error(`no name specified in register`))
+  if (!name) return Promise.reject(new Error(`No name specified in register`))
   return new Promise((resolve, reject) => {
     let r = resources[name] = Object.assign(opts, {name})
     if (Array.isArray(r.skipAuth)) {
@@ -195,7 +195,7 @@ function handleRequest (req, res) {
 
 function sendData (res, data = null) {
   if (res.headersSent) {
-    logIt(new Error(`can't send data after headers sent`), 'warn')
+    logIt(new Error(`Can't send data after headers sent`), 'warn')
     return Promise.resolve()
   }
   return new Promise((resolve, reject) => {
@@ -218,11 +218,11 @@ function sendData (res, data = null) {
 function sendErr (res, err, code = 500) {
   res.statusCode = code
   if (res.headersSent) {
-    logIt(err || new Error(`can't send error after headers sent`), 'warn')
+    logIt(err || new Error(`Can't send error after headers sent`), 'warn')
     return Promise.resolve()
   }
   if (!err) {
-    res.end(JSON.stringify({data: null, error: 'unspecified error'}))
+    res.end(JSON.stringify({data: null, error: 'Unspecified error'}))
     return Promise.resolve()
   }
   return new Promise((resolve, reject) => {
@@ -233,11 +233,11 @@ function sendErr (res, err, code = 500) {
   })
 }
 
-function fourOhOne (res, err = new Error(`unable to authenticate request`)) {
+function fourOhOne (res, err = new Error(`Unable to authenticate request`)) {
   return sendErr(res, err, 401)
 }
 
-function fourOhFour (res, err = new Error(`no match for requested route`)) {
+function fourOhFour (res, err = new Error(`No match for requested route`)) {
   return sendErr(res, err, 404)
 }
 
@@ -251,12 +251,12 @@ function ackPreflight (res, origin, allowHeaders) {
 function rejectPreflight (res, origin) {
   res.setHeader('Origin', origin || '')
   res.statusCode = 403
-  res.end()
+  res.end(JSON.stringify({data: null, error: 'Origin not allowed'}))
 }
 
 function genToken (payload = {}) {
   let key = jwtOpts.secret || jwtOpts.privateKey
-  let noOpts = () => new Error('missing required jsonwebtoken opts')
+  let noOpts = () => new Error('Missing required jsonwebtoken opts')
   if (!jwtOpts || !key) return Promise.reject(noOpts())
   let opts = filterObj(jwtOpts, wlSign)
   return new Promise((resolve, reject) => {
