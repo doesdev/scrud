@@ -72,7 +72,13 @@ const callPgFunc = (name, params) => {
       if (err) return reject(err)
       client.query(q, [params], (err, result) => {
         done(err)
-        if (err) return reject(err)
+        if (err) {
+          try {
+            let errObj = JSON.parse(err.message)
+            err.message = errObj.error ? errObj.error : errObj
+          } catch (ex) {}
+          return reject(err)
+        }
         resolve((result.rows[0] || {})[name] ? result.rows[0][name] : [])
       })
     })
