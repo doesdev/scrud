@@ -124,7 +124,7 @@ module.exports = {
 function register (name, opts = {}) {
   if (!name) return Promise.reject(new Error(`No name specified in register`))
   return new Promise((resolve, reject) => {
-    let r = resources[name] = Object.assign(opts, {name})
+    let r = resources[name] = Object.assign({}, opts, {name})
     if (Array.isArray(r.skipAuth)) {
       let skippers = {}
       r.skipAuth.forEach((a) => { skippers[a] = true })

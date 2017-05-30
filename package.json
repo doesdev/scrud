@@ -28,8 +28,8 @@
     "axios": "^0.16.1"
   },
   "dependencies": {
-    "jsonwebtoken": "^7.4.0",
-    "pg": "^6.1.5",
-    "tiny-params": "^1.0.3"
+    "jsonwebtoken": "^7.4.1",
+    "pg": "^6.2.3",
+    "tiny-params": "^2.0.2"
   }
 }
