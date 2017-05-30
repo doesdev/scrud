@@ -74,6 +74,8 @@ const callPgFunc = (name, params) => {
         done(err)
         if (err) {
           try {
+            err.meta = err.meta || {}
+            err.meta.pgFunction = name
             let errObj = JSON.parse(err.message)
             err.message = errObj.error ? errObj.error : errObj
           } catch (ex) {}
