@@ -24,12 +24,12 @@
   },
   "homepage": "https://github.com/doesdev/scrud#readme",
   "devDependencies": {
-    "ava": "^0.19.1",
-    "axios": "^0.16.1"
+    "ava": "^0.21.0",
+    "axios": "^0.16.2"
   },
   "dependencies": {
     "jsonwebtoken": "^7.4.1",
-    "pg": "^6.2.3",
+    "pg": "^6.4.1",
     "tiny-params": "^2.0.2"
   }
 }
