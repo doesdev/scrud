@@ -1,4 +1,4 @@
-# scrud [![NPM version](https://badge.fury.io/js/scrud.svg)](https://npmjs.org/package/scrud)   [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)
+# scrud [![NPM version](https://badge.fury.io/js/scrud.svg)](https://npmjs.org/package/scrud)   [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)   [![Dependency Status](https://dependencyci.com/github/doesdev/scrud/badge)](https://dependencyci.com/github/doesdev/scrud)
 
 > Super opinionated, minimalistic, PG centric API fabric
 
