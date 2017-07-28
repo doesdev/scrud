@@ -22,14 +22,15 @@
     "url": "https://github.com/doesdev/scrud/issues"
   },
   "homepage": "https://github.com/doesdev/scrud#readme",
-  "devDependencies": {
-    "ava": "^0.21.0",
-    "axios": "^0.16.2"
-  },
   "dependencies": {
     "jsonwebtoken": "^7.4.1",
     "pg": "^7.0.1",
     "semver": "^5.4.1",
     "tiny-params": "^2.0.2"
+  },
+  "devDependencies": {
+    "ava": "^0.21.0",
+    "axios": "^0.16.2",
+    "get-scrud": "^1.0.3"
   }
 }

@@ -93,7 +93,10 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
     body += d.toString()
     if (body.length > maxBodyBytes) return reject(new Error('Body too large'))
   })
-  req.on('end', () => resolve(body ? JSON.parse(body) : {}))
+  let parse = () => {
+    try { resolve(body ? JSON.parse(body) : {}) } catch (ex) { resolve({}) }
+  }
+  req.on('end', parse)
 })
 
 const noIdErr = () => JSON.stringify(new Error('No id passed'))
