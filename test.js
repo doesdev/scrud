@@ -30,7 +30,8 @@ test.before(async () => {
 
 test.serial('CREATE', async (assert) => {
   // create first so that we can expect data in other actions
-  id = (await apiCall('member', 'create', postBody)).id
+  let c = await apiCall('member', 'create', postBody)
+  id = c.id
   assert.truthy(id)
 })
 
