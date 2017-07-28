@@ -54,7 +54,8 @@ const cleanPath = (url) => {
 
 const parseId = (url) => {
   let id = (url.match(/\/(.+?)(\/|\?|$)/) || [])[1]
-  return (id || '').match(/^\d+$/) ? parseInt(id, 10) : id || null
+  id = (id || '').match(/^\d+$/) ? parseInt(id, 10) : id || null
+  return id === 'null' || id === 'undefined' ? null : id
 }
 
 const callPgFunc = (name, params) => {
