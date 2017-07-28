@@ -228,10 +228,11 @@ function sendData (res, data = null) {
 
 function sendErr (res, err, code = 500) {
   res.statusCode = code
-  res.removeHeader('content-encoding')
   if (res.headersSent) {
     logIt(err || new Error(`Can't send error after headers sent`), 'warn')
     return Promise.resolve()
+  } else {
+    res.removeHeader('content-encoding')
   }
   if (!err) {
     res.end(JSON.stringify({data: null, error: 'Unspecified error'}))
