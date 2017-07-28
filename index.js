@@ -8,13 +8,6 @@ const tinyParams = require('tiny-params')
 const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
-const handlers = {
-  search: (name, req) => findAll(name, req.params),
-  create: (name, req) => create(name, req.params),
-  read: (name, req) => find(name, req.id, req.params),
-  update: (name, req) => save(name, req.id, req.params),
-  delete: (name, req) => destroy(name, req.id, req.params)
-}
 const scrud = {
   GET: 'search',
   'GET?': 'search',
@@ -105,6 +98,20 @@ const filterObj = (obj, ary) => {
   let base = {}
   ary.forEach((o) => { base[o] = obj[o] })
   return base
+}
+
+// database action handlers
+const find = (rsrc, id, params) => pgActions(rsrc, 'read', id, params)
+const findAll = (rsrc, params) => pgActions(rsrc, 'search', null, params)
+const create = (rsrc, params) => pgActions(rsrc, 'create', null, params)
+const save = (rsrc, id, params) => pgActions(rsrc, 'update', id, params)
+const destroy = (rsrc, id, params) => pgActions(rsrc, 'delete', id, params)
+const handlers = {
+  search: (name, req) => findAll(name, req.params),
+  create: (name, req) => create(name, req.params),
+  read: (name, req) => find(name, req.id, req.params),
+  update: (name, req) => save(name, req.id, req.params),
+  delete: (name, req) => destroy(name, req.id, req.params)
 }
 
 // exports
@@ -289,43 +296,25 @@ function authenticate (jwt) {
   })
 }
 
-// helper: find resource
-function find (resource, id, params) {
-  if (!id && id !== 0) return Promise.reject(noIdErr())
-  params.id = id
-  params.id_array = [id]
+// helper: handle all resource helpers
+function pgActions (resource, action, id, params) {
+  let checkId = {read: true, update: true, delete: true}
+  if (checkId[action]) {
+    if (!id && id !== 0) return Promise.reject(noIdErr())
+    if (action === 'read') params.id_array = [id]
+    params.id = id
+  }
   let firstRecord = (d) => Promise.resolve(d[0])
-  return callPgFunc(`${pgPrefix}${resource}_read`, params).then(firstRecord)
-}
-
-// helper: find set of resources
-function findAll (resource, params) {
-  Object.keys(params).forEach((k) => {
-    if (!Array.isArray(params[k])) return
-    params[`${k}_array`] = params[k]
-  })
-  return callPgFunc(`${pgPrefix}${resource}_search`, params)
-}
-
-// helper: create resource
-function create (resource, params) {
-  let firstRecord = (d) => Promise.resolve(d[0])
-  return callPgFunc(`${pgPrefix}${resource}_create`, params).then(firstRecord)
-}
-
-// helper: update resource
-function save (resource, id, params) {
-  if (!id && id !== 0) return Promise.reject(noIdErr())
-  params.id = id
-  let firstRecord = (d) => Promise.resolve(d[0])
-  return callPgFunc(`${pgPrefix}${resource}_update`, params).then(firstRecord)
-}
-
-// helper: delete resource
-function destroy (resource, id, params) {
-  if (!id && id !== 0) return Promise.reject(noIdErr())
-  params.id = id
-  return callPgFunc(`${pgPrefix}${resource}_delete`, params)
+  let first = {create: true, read: true, update: true}
+  if (action === 'search') {
+    Object.keys(params).forEach((k) => {
+      if (!Array.isArray(params[k])) return
+      params[`${k}_array`] = params[k]
+    })
+  }
+  let funcName = `${pgPrefix}${resource}_${action}`
+  if (!first[action]) return callPgFunc(funcName, params)
+  return callPgFunc(funcName, params).then(firstRecord)
 }
 
 // default handler for all resource methods
