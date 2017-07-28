@@ -41,11 +41,13 @@ test.serial('SEARCH', async (assert) => {
 })
 
 test.serial('READ', async (assert) => {
-  assert.is((await apiCall('member', 'read', id)).zip, '37601')
+  let r = await apiCall('member', 'read', id)
+  assert.is(r.zip, '37601')
 })
 
 test.serial('UPDATE', async (assert) => {
-  assert.is((await apiCall('member', 'update', id, putBody)).zip, '37615')
+  let u = await apiCall('member', 'update', id, putBody)
+  assert.is(u.zip, '37615')
 })
 
 test.serial('DELETE', async (assert) => {

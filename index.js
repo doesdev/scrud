@@ -92,8 +92,6 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
   req.on('end', parse)
 })
 
-const noIdErr = () => JSON.stringify(new Error('No id passed'))
-
 const filterObj = (obj, ary) => {
   let base = {}
   ary.forEach((o) => { base[o] = obj[o] })
@@ -300,7 +298,7 @@ function authenticate (jwt) {
 function pgActions (resource, action, id, params) {
   let checkId = {read: true, update: true, delete: true}
   if (checkId[action]) {
-    if (!id && id !== 0) return Promise.reject(noIdErr())
+    if (!id && id !== 0) return Promise.reject(new Error('No id passed'))
     if (action === 'read') params.id_array = [id]
     params.id = id
   }
@@ -325,7 +323,7 @@ function actionHandler (req, res, name, action) {
   if (typeof bs !== 'function') bs = bs[action]
   let act = () => handlers[action](name, req)
   let send = (d) => sendData(res, d)
-  let finish = (d) => bs ? bs(req, res, d).then((d) => send(d)) : send(d)
+  let finish = (d) => bs ? bs(req, res, d).then(send) : send(d)
   let run = () => bq ? bq(req, res).then(act).then(finish) : act().then(finish)
   return run().catch((e) => sendErr(res, e))
 }
