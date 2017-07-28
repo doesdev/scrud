@@ -2,7 +2,7 @@
 
 // setup
 const http = require('http')
-const Pg = require('pg').Pool
+const { Pool } = require('pg')
 const jsonwebtoken = require('jsonwebtoken')
 const tinyParams = require('tiny-params')
 const zlib = require('zlib')
@@ -61,23 +61,22 @@ const parseId = (url) => {
 const callPgFunc = (name, params) => {
   let q = `SELECT * FROM ${name}($1);`
   if (!pgPool) return Promise.reject(new Error('No database configured'))
-  return new Promise((resolve, reject) => {
-    pgPool.connect((err, client, done) => {
-      if (err) return reject(err)
-      client.query(q, [params], (err, result) => {
-        done(err)
-        if (err) {
-          try {
-            err.meta = err.meta || {}
-            err.meta.pgFunction = name
-            let errObj = JSON.parse(err.message)
-            err.message = errObj.error ? errObj.error : errObj
-          } catch (ex) {}
-          return reject(err)
-        }
-        resolve((result.rows[0] || {})[name] ? result.rows[0][name] : [])
-      })
+  return pgPool.connect().then((client) => {
+    return client.query(q, [params]).then((data) => {
+      client.release()
+      return Promise.resolve((data.rows[0] || {})[name] || [])
+    }).catch((err) => {
+      client.release()
+      return Promise.reject(err)
     })
+  }).catch((err) => {
+    try {
+      err.meta = err.meta || {}
+      err.meta.pgFunction = name
+      let errObj = JSON.parse(err.message)
+      err.message = errObj.error ? errObj.error : errObj
+    } catch (ex) {}
+    return err
   })
 }
 
@@ -164,7 +163,7 @@ function start (opts = {}) {
     let server = http.createServer(handleRequest)
     server.setTimeout(opts.timeout || defaultTimeout)
     server.listen(opts.port || port)
-    if (opts.postgres) pgPool = new Pg(opts.postgres)
+    if (opts.postgres) pgPool = new Pool(opts.postgres)
     return resolve(server)
   })
 }
