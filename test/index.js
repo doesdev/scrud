@@ -56,25 +56,3 @@ test('register returns resource object', async (assert) => {
   assert.truthy(resource.hasOwnProperty('name'), 'resource has name')
   assert.is(resource.name, 'profile')
 })
-
-test('instances do not intermingle', async (assert) => {
-  let aScrud = scrud.instance()
-  let sharedOpts = {logger: () => {}}
-  let aOpts = {port: 8093, base: '/api-a', namespace: 'scrud', allowOrigins}
-  let aBase = `http://localhost:${aOpts.port}${aOpts.base}/`
-  Object.assign(aOpts, sharedOpts, secrets)
-  let bScrud = scrud.instance()
-  let bOpts = {port: 8094, base: '/api-b', namespace: 'scrud', allowOrigins}
-  let bBase = `http://localhost:${bOpts.port}${bOpts.base}/`
-  Object.assign(bOpts, sharedOpts, secrets)
-  await aScrud.register('member_a')
-  await bScrud.register('member_b')
-  await aScrud.start(aOpts)
-  await bScrud.start(bOpts)
-  // ensure aScrud only handles it's resources
-  await assert.throws(axios({method: 'GET', url: `${aBase}member_b/1`}))
-  await assert.notThrows(axios({method: 'GET', url: `${aBase}member_a/1`}))
-  // ensure bScrud only handles it's resources
-  await assert.throws(axios({method: 'GET', url: `${bBase}member_a/1`}))
-  await assert.notThrows(axios({method: 'GET', url: `${bBase}member_b/1`}))
-})

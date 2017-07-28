@@ -1,14 +1,13 @@
 {
   "name": "scrud",
-  "version": "1.0.16",
+  "version": "2.0.0-beta",
   "description": "Super opinionated, minimalistic, PG centric API fabric",
   "engines": {
     "node": ">=6.0.0"
   },
   "main": "index.js",
   "files": [
-    "index.js",
-    "scrud.js"
+    "index.js"
   ],
   "scripts": {
     "test": "ava --verbose"
@@ -30,6 +29,7 @@
   "dependencies": {
     "jsonwebtoken": "^7.4.1",
     "pg": "^7.0.1",
+    "semver": "^5.4.1",
     "tiny-params": "^2.0.2"
   }
 }
