@@ -59,10 +59,10 @@ test.serial('regession: body parses gracefully', async (assert) => {
   await assert.notThrows(axios({method: 'PUT', url, data: 'u'}))
 })
 
-// test.serial('close ends pg client', async (assert) => {
-//   let url = `http://localhost:${port}${basePath}/member/${id}`
-//   await assert.notThrows(axios({method: 'PUT', url, data: 'u', timeout: 3}))
-// })
+test.serial('close ends pg client', async (assert) => {
+  let url = `http://localhost:${port}${basePath}/member/${id}`
+  await assert.throws(axios({method: 'PUT', url, data: 'u', timeout: 3}))
+})
 
 test('register throws with no name', async (assert) => {
   await assert.throws(scrud.register(), Error, 'register throws with no name')

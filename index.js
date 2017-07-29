@@ -99,18 +99,12 @@ const filterObj = (obj, ary) => {
 }
 
 // database action handlers
-const find = (rsrc, id, params) => pgActions(rsrc, 'read', id, params)
-const findAll = (rsrc, params) => pgActions(rsrc, 'search', null, params)
-const create = (rsrc, params) => pgActions(rsrc, 'create', null, params)
-const save = (rsrc, id, params) => pgActions(rsrc, 'update', id, params)
-const destroy = (rsrc, id, params) => pgActions(rsrc, 'delete', id, params)
-const handlers = {
-  search: (name, req) => findAll(name, req.params),
-  create: (name, req) => create(name, req.params),
-  read: (name, req) => find(name, req.id, req.params),
-  update: (name, req) => save(name, req.id, req.params),
-  delete: (name, req) => destroy(name, req.id, req.params)
-}
+const handlers = {}
+const find = handlers.read = (rsrc, req) => pgActions(rsrc, 'read', req)
+const findAll = handlers.search = (rsrc, req) => pgActions(rsrc, 'search', req)
+const create = handlers.create = (rsrc, req) => pgActions(rsrc, 'create', req)
+const save = handlers.update = (rsrc, req) => pgActions(rsrc, 'update', req)
+const destroy = handlers.delete = (rsrc, req) => pgActions(rsrc, 'delete', req)
 
 // exports
 module.exports = {
@@ -295,7 +289,8 @@ function authenticate (jwt) {
 }
 
 // helper: handle all resource helpers
-function pgActions (resource, action, id, params) {
+function pgActions (resource, action, req) {
+  let {id, params} = req
   let checkId = {read: true, update: true, delete: true}
   if (checkId[action]) {
     if (!id && id !== 0) return Promise.reject(new Error('No id passed'))

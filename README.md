@@ -97,11 +97,11 @@ Set global options and start API server
 - fourOhFour(res, err) - send 404 (not found) error to client  
 - genToken(payload) - generate JWT token  
 - authenticate(jwt) - authenticate JWT token  
-- find(resource, id, params) - call PG read function for resource  
-- findAll(resource, params) - call PG search function for resource  
-- create(resource, params) - call PG create function for resource  
-- save(resource, id, params) - call PG update function for resource  
-- destroy(resource, id, params) - call PG delete function for resource  
+- find(resource, req) - call PG read function for resource  
+- findAll(resource, req) - call PG search function for resource  
+- create(resource, req) - call PG create function for resource  
+- save(resource, req) - call PG update function for resource  
+- destroy(resource, req) - call PG delete function for resource  
 
 # usage
 
