@@ -62,8 +62,8 @@ const callPgFunc = (name, params, req) => {
   let q = `SELECT * FROM ${name}($1);`
   if (!pgPool) return Promise.reject(new Error('No database configured'))
   return pgPool.connect().then((client) => {
-    let close = () => { if (client && client.end) client.end().catch(logIt) }
-    if (req && req.on) req.on('close', close)
+    let close = () => { if (client && client.end) client.end().catch(() => {}) }
+    if (req && req.on) req.once('close', close)
     return client.query(q, [params]).then((data) => {
       req.removeListener('close', close)
       client.release()
