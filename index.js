@@ -58,14 +58,18 @@ const parseId = (url) => {
   return id === 'null' || id === 'undefined' ? null : id
 }
 
-const callPgFunc = (name, params) => {
+const callPgFunc = (name, params, req) => {
   let q = `SELECT * FROM ${name}($1);`
   if (!pgPool) return Promise.reject(new Error('No database configured'))
   return pgPool.connect().then((client) => {
+    let close = () => { if (client && client.end) client.end().catch(logIt) }
+    if (req && req.on) req.on('close', close)
     return client.query(q, [params]).then((data) => {
+      req.removeListener('close', close)
       client.release()
       return Promise.resolve((data.rows[0] || {})[name] || [])
     }).catch((err) => {
+      req.removeListener('close', close)
       client.release()
       return Promise.reject(err)
     })
@@ -121,7 +125,8 @@ module.exports = {
   findAll,
   create,
   save,
-  destroy
+  destroy,
+  callPgFunc
 }
 
 // register resource
@@ -306,8 +311,8 @@ function pgActions (resource, action, req) {
     })
   }
   let funcName = `${pgPrefix}${resource}_${action}`
-  if (!first[action]) return callPgFunc(funcName, params)
-  return callPgFunc(funcName, params).then(firstRecord)
+  if (!first[action]) return callPgFunc(funcName, params, req)
+  return callPgFunc(funcName, params, req).then(firstRecord)
 }
 
 // default handler for all resource methods
