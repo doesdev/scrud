@@ -1,6 +1,6 @@
 {
   "name": "scrud",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Super opinionated, minimalistic, PG centric API fabric",
   "engines": {
     "node": ">=6.0.0"
@@ -25,7 +25,6 @@
   "dependencies": {
     "jsonwebtoken": "^7.4.1",
     "pg": "^7.0.1",
-    "semver": "^5.4.1",
     "tiny-params": "^2.0.2"
   },
   "devDependencies": {
