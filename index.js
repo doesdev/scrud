@@ -80,7 +80,7 @@ const callPgFunc = (name, params, req) => {
       let errObj = JSON.parse(err.message)
       err.message = errObj.error ? errObj.error : errObj
     } catch (ex) {}
-    return err
+    return Promise.reject(err)
   })
 }
 

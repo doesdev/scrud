@@ -16,7 +16,8 @@ const basePath = '/api'
 const port = 8092
 const apiCall = getScrud({host: 'localhost', port, basePath, timeout: '10s'})
 const putBody = {zip: 37615}
-const opts = {port, base: basePath, namespace: 'scrud', allowOrigins}
+const logger = () => {}
+const opts = {port, base: basePath, namespace: 'scrud', allowOrigins, logger}
 Object.assign(opts, require('./../_secrets/scrud/config.json'))
 
 // globals
