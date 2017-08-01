@@ -65,11 +65,11 @@ const callPgFunc = (name, params, req) => {
     let close = () => { if (client && client.end) client.end().catch(() => {}) }
     if (req && req.on) req.once('close', close)
     return client.query(q, [params]).then((data) => {
-      req.removeListener('close', close)
+      if (req && req.removeListener) req.removeListener('close', close)
       client.release()
       return Promise.resolve((data.rows[0] || {})[name] || [])
     }).catch((err) => {
-      req.removeListener('close', close)
+      if (req && req.removeListener) req.removeListener('close', close)
       client.release()
       return Promise.reject(err)
     })
