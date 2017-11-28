@@ -98,7 +98,7 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
 
 const filterObj = (obj, ary) => {
   let base = {}
-  ary.forEach((o) => { base[o] = obj[o] })
+  ary.forEach((o) => { if (o in obj) base[o] = obj[o] })
   return base
 }
 
@@ -284,7 +284,7 @@ function genToken (payload = {}) {
 }
 
 function authenticate (jwt) {
-  let key = jwtOpts.secret || jwtOpts.publicKey
+  let key = (jwtOpts || {}).secret || (jwtOpts || {}).publicKey
   if (!jwtOpts || !key) return Promise.resolve()
   return new Promise((resolve, reject) => {
     jsonwebtoken.verify(jwt, key, jwtOpts, (err, d = {}) => {

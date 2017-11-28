@@ -14,19 +14,34 @@ const postBody = {
 }
 const basePath = '/api'
 const port = 8092
-const apiCall = getScrud({host: 'localhost', port, basePath, timeout: '10s'})
+const apiOpts = {host: 'localhost', port, basePath, timeout: '10s'}
 const putBody = {zip: 37615}
 const logger = () => {}
-const opts = {port, base: basePath, namespace: 'scrud', allowOrigins, logger}
+const opts = {
+  port,
+  base: basePath,
+  namespace: 'scrud',
+  allowOrigins,
+  logger,
+  jsonwebtoken: {
+    secret: `SomeRandomAstString`,
+    algorithm: `HS256`,
+    issuer: `SCRUD`,
+    audience: `client`,
+    expiresIn: 1800
+  }
+}
 Object.assign(opts, require('./../_secrets/scrud/config.json'))
 
 // globals
-let id
+let id, apiCall, jwt
 
 // tests
 test.before(async () => {
   await scrud.register('member')
   await scrud.start(opts)
+  jwt = await scrud.genToken({some: 'stuffs'})
+  apiCall = getScrud(Object.assign({jwt}, apiOpts))
 })
 
 test.serial('CREATE', async (assert) => {
@@ -57,7 +72,8 @@ test.serial('DELETE', async (assert) => {
 
 test.serial('regession: body parses gracefully', async (assert) => {
   let url = `http://localhost:${port}${basePath}/member/${id}`
-  await assert.notThrows(axios({method: 'PUT', url, data: 'u'}))
+  let headers = {Authorization: `Bearer ${jwt}`}
+  await assert.notThrows(axios({method: 'PUT', url, data: 'u', headers}))
 })
 
 test.skip('close ends pg client (not really testable)', async (assert) => {
