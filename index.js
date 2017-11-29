@@ -8,6 +8,21 @@ const tinyParams = require('tiny-params')
 const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
+const noop = () => {}
+const dummyRes = {
+  addTrailers: noop,
+  end: noop,
+  getHeader: noop,
+  getHeaderNames: noop,
+  getHeaders: noop,
+  hasHeader: noop,
+  removeHeader: noop,
+  setHeader: noop,
+  setTimeout: noop,
+  write: noop,
+  writeContinue: noop,
+  writeHead: noop
+}
 const scrud = {
   GET: 'search',
   'GET?': 'search',
@@ -122,15 +137,16 @@ module.exports = {
   genToken,
   authenticate,
   find,
-  read: find,
   findAll,
-  search: findAll,
-  create,
+  insert: create,
   save,
-  update: save,
   destroy,
-  delete: destroy,
-  callPgFunc
+  callPgFunc,
+  read: (rsrc, req) => actionHandler(req, null, rsrc, 'read', true),
+  create: (rsrc, req) => actionHandler(req, null, rsrc, 'create', true),
+  search: (rsrc, req) => actionHandler(req, null, rsrc, 'search', true),
+  update: (rsrc, req) => actionHandler(req, null, rsrc, 'update', true),
+  delete: (rsrc, req) => actionHandler(req, null, rsrc, 'delete', true)
 }
 
 // register resource
@@ -196,13 +212,12 @@ function handleRequest (req, res) {
   let connection = req.connection || {}
   req.params.ip = headers['x-forwarded-for'] || connection.remoteAddress
   req.once('error', (err) => sendErr(res, err))
-  let handler = resource[action] || actionHandler
   let jwt = (headers.authorization || '').replace(/^Bearer\s/, '')
   let callHandler = () => {
-    if (!hasBody[action]) return handler(req, res, name, action)
+    if (!hasBody[action]) return actionHandler(req, res, name, action)
     return bodyParse(req).then((body) => {
       req.params = Object.assign(body, req.params)
-      return handler(req, res, name, action)
+      return actionHandler(req, res, name, action)
     }).catch((e) => sendErr(res, e))
   }
   if (resource.skipAuth && resource.skipAuth[action]) return callHandler()
@@ -320,14 +335,20 @@ function pgActions (resource, action, req) {
 }
 
 // default handler for all resource methods
-function actionHandler (req, res, name, action) {
-  let bq = resources[name].beforeQuery || {} // (req, res)
+function actionHandler (req, res, name, action, skipRes) {
+  let rsrc = resources[name]
+  res = res || dummyRes
+  let bq = rsrc.beforeQuery || {} // (req, res)
   if (typeof bq !== 'function') bq = bq[action]
-  let bs = resources[name].beforeSend || {} // (req, res, data)
+  let bs = rsrc.beforeSend || {} // (req, res, data)
   if (typeof bs !== 'function') bs = bs[action]
-  let act = () => handlers[action](name, req)
-  let send = (d) => sendData(res, d)
+  let act = () => rsrc[action]
+      ? rsrc[action](req, res, name, action, skipRes)
+      : handlers[action](name, req)
+  if (rsrc[action]) return bq ? bq(req, res).then(act) : act()
+  let send = (d) => skipRes ? Promise.resolve(d) : sendData(res, d)
   let finish = (d) => bs ? bs(req, res, d).then(send) : send(d)
   let run = () => bq ? bq(req, res).then(act).then(finish) : act().then(finish)
-  return run().catch((e) => sendErr(res, e))
+  let handleErr = (e) => skipRes ? Promise.reject(e) : sendErr(res, e)
+  return run().catch(handleErr)
 }

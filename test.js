@@ -91,3 +91,19 @@ test('register returns resource object', async (assert) => {
   assert.truthy(resource.hasOwnProperty('name'), 'resource has name')
   assert.is(resource.name, 'profile')
 })
+
+test(`exported resource DB helpers work as expected`, async (assert) => {
+  let locId = (await scrud.insert('member', {params: {zip: 37615}})).id
+  assert.is((await scrud.findAll('member', {params: {id: locId}}))[0].zip, '37615')
+  await assert.notThrows(scrud.save('member', {id: locId, params: {zip: '37610'}}))
+  assert.is((await scrud.find('member', {id: locId, params: {}})).zip, '37610')
+  await assert.notThrows(scrud.destroy('member', {id: locId, params: {}}))
+})
+
+test(`exported SCRUD helpers work as expected`, async (assert) => {
+  let locId = (await scrud.create('member', {params: {zip: 37615}})).id
+  assert.is((await scrud.search('member', {params: {id: locId}}))[0].zip, '37615')
+  await assert.notThrows(scrud.update('member', {id: locId, params: {zip: 37610}}))
+  assert.is((await scrud.read('member', {id: locId, params: {}})).zip, '37610')
+  await assert.notThrows(scrud.delete('member', {id: locId, params: {}}))
+})
