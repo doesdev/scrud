@@ -90,19 +90,19 @@ Set global options and start API server
     - returns: `Object` - updated auth object
 
 # helper functions (used internally but exported as a courtesy)
-- sendData(res, data) - send response data to client
-- sendErr(res, error, code) - send error to client  
-- logIt(error, logLevel) - invoke logger with error and logLevel  
-- fourOhOne(res, err) - send 401 (unauthorized) error to client  
-- fourOhFour(res, err) - send 404 (not found) error to client  
-- genToken(payload) - generate JWT token  
-- authenticate(jwt) - authenticate JWT token  
-- find(resource, req) - call PG read function for resource  
-- findAll(resource, req) - call PG search function for resource  
-- create(resource, req) - call PG create function for resource  
-- save(resource, req) - call PG update function for resource  
-- destroy(resource, req) - call PG delete function for resource  
-- callPgFunc(functionName, params, req) - call any PG function with single arg
+- `sendData`(response, data) - send response data to client
+- `sendErr`(response, error, code) - send error to client  
+- `logIt`(error, logLevel) - invoke logger with error and logLevel  
+- `fourOhOne`(response, error) - send 401 (unauthorized) error to client  
+- `fourOhFour`(response, error) - send 404 (not found) error to client  
+- `genToken`(payload) - generate JWT token  
+- `authenticate`(jwt) - authenticate JWT token  
+- `callPgFunc`(functionName, params, request) - call any PG function with single arg  
+- `search`(resource, request) - call PG search function for resource (alias `findAll`)
+- `create`(resource, request) - call PG create function for resource  
+- `read`(resource, request) - call PG read function for resource (alias `find`)  
+- `update`(resource, request) - call PG update function for resource (alias `save`)  
+- `delete`(resource, request) - call PG delete function for resource (alias `destroy`)  
 
 # usage
 

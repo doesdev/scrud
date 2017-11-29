@@ -122,10 +122,14 @@ module.exports = {
   genToken,
   authenticate,
   find,
+  read: find,
   findAll,
+  search: findAll,
   create,
   save,
+  update: save,
   destroy,
+  delete: destroy,
   callPgFunc
 }
 
