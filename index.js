@@ -8,6 +8,7 @@ const tinyParams = require('tiny-params')
 const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
+const checkId = {read: true, update: true, delete: true}
 const noop = () => {}
 const dummyRes = {
   addTrailers: noop,
@@ -207,7 +208,7 @@ function handleRequest (req, res) {
     res.setHeader('Content-Encoding', 'gzip')
   }
   res.setHeader('SCRUD', `${name}:${action}`)
-  req.id = parseId(url)
+  if (checkId[action]) req.id = parseId(url)
   req.params = tinyParams(url)
   let connection = req.connection || {}
   req.params.ip = headers['x-forwarded-for'] || connection.remoteAddress
@@ -316,7 +317,6 @@ function authenticate (jwt) {
 // helper: handle all resource helpers
 function pgActions (resource, action, req) {
   let {id, params} = req
-  let checkId = {read: true, update: true, delete: true}
   if (checkId[action]) {
     if (!id && id !== 0) return Promise.reject(new Error('No id passed'))
     if (action === 'read') params.id_array = [id]
