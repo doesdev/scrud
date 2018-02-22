@@ -16,9 +16,10 @@ const logStart = (n) => {
   if (Object.keys(ready).every((k) => ready[k])) bench()
 }
 const results = []
+const benchId = 301
 
 const urlTemplate = (port, string) => {
-  let url = {host: 'localhost', port, path: '/hello'}
+  let url = {host: 'localhost', port, path: `/bench/${benchId}`}
   return string ? `http://${url.host}:${url.port}${url.path}` : url
 }
 
@@ -44,27 +45,27 @@ const formatBytes = (bytes) => {
 // HTTP
 http.createServer((req, res) => {
   res.setHeader('Content-Type', 'application/json')
-  res.end(JSON.stringify({data: 'world', error: null}))
+  res.end(JSON.stringify({data: `${benchId}`, error: null}))
 }).listen(ports.http, () => logStart('http'))
 
 // FASTIFY
-fastify.get('/hello', function (req, reply) {
-  reply.send({data: 'world', error: null})
+fastify.get('/bench/:id', function (req, reply) {
+  reply.send({data: `${req.params.id}`, error: null})
 })
 fastify.listen(ports.fastify, () => logStart('fastify'))
 
 // POLKA
-polka().get('/hello', (req, res) => {
-  res.end(JSON.stringify({data: 'world', error: null}))
+polka().get('/bench/:id', (req, res) => {
+  res.end(JSON.stringify({data: `${req.params.id}`, error: null}))
 }).listen(ports.polka).then(() => logStart('polka'))
 
 // SCRUD
-scrud.register('hello', {search: (req, res) => scrud.sendData(res, 'world')})
+scrud.register('bench', {read: (req, res) => scrud.sendData(res, `${req.id}`)})
 scrud.start({port: ports.scrud}).then(() => logStart('scrud'))
 
 // EXPRESS
-express().get('/hello', (req, res) => {
-  res.end(JSON.stringify({data: 'world', error: null}))
+express().get('/bench/:id', (req, res) => {
+  res.end(JSON.stringify({data: `${req.params.id}`, error: null}))
 }).listen(ports.express, () => logStart('express'))
 
 // benchamrks
@@ -82,15 +83,17 @@ const bencher = (title) => new Promise((resolve, reject) => {
   })
 })
 
-let lastResult
+let last = {}
 const checkConsistency = async (name) => {
   let port = ports[name]
-  let { search } = getScrud(urlTemplate(port))
-  let tmpRes = await search('hello', {})
-  if (!tmpRes || (lastResult && lastResult !== tmpRes)) {
-    throw new Error(`Got inconsistent results from libraries`)
+  let { read } = getScrud(urlTemplate(port))
+  let tmpRes = await read('bench', benchId)
+  if (!tmpRes || (last.lib && last.result !== tmpRes)) {
+    let err = new Error(`Got inconsistent results from libraries`)
+    err.meta = [`${last.lib} - ${last.result}`, `${name} - ${tmpRes}`]
+    throw err
   }
-  lastResult = tmpRes
+  last = {lib: name, result: tmpRes}
 }
 
 async function bench () {
@@ -100,7 +103,7 @@ async function bench () {
     try {
       await checkConsistency(name)
     } catch (ex) {
-      console.log(ex)
+      console.log(ex, name)
       process.exit()
     }
   }
