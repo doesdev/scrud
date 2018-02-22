@@ -1,6 +1,7 @@
 'use strict'
 
 const http = require('http')
+const getScrud = require('get-scrud')
 const polka = require('polka')
 const fastify = require('fastify')()
 const scrud = require('./../index')
@@ -15,6 +16,8 @@ const logStart = (n) => {
   if (Object.keys(ready).every((k) => ready[k])) bench()
 }
 const results = []
+
+const urlTemplate = (port) => `http://localhost:${port}/hello`
 
 const shuffler = (array) => {
   for (let i = array.length - 1; i > 0; i--) {
@@ -70,15 +73,34 @@ const bencher = (title) => new Promise((resolve, reject) => {
     results.push(res)
     return resolve(title)
   }
-  let acOpts = {url: `http://localhost:${port}/hello`, title, connections: 50}
+  let acOpts = {url: urlTemplate(port), title, connections: 50}
   autocannon(Object.assign({duration: 3}, acOpts), () => {
     autocannon(Object.assign({duration: 7}, acOpts), done)
   })
 })
 
+let lastResult
+const checkConsistency = async (name) => {
+  let port = ports[name]
+  let { search } = getScrud({host: 'localhost', port})
+  let tmpRes = await search('hello', {})
+  if (!tmpRes || (lastResult && lastResult !== tmpRes)) {
+    throw new Error(`Got inconsistent results from libraries`)
+  }
+  lastResult = tmpRes
+}
+
 async function bench () {
   console.log(`servers running, starting benchmarks\n`)
   let keys = shuffler(Object.keys(ports))
+  for (let name of keys) {
+    try {
+      await checkConsistency(name)
+    } catch (ex) {
+      console.log(ex)
+      process.exit()
+    }
+  }
   for (let name of keys) await bencher(name)
   let head = ['lib', 'req/sec', 'latency', 'throughput', 'errors'].map((h) => {
     return {alias: h}
