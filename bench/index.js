@@ -70,7 +70,7 @@ const bencher = (title) => new Promise((resolve, reject) => {
     results.push(res)
     return resolve(title)
   }
-  let acOpts = {url: `http://localhost:${port}/hello`, title}
+  let acOpts = {url: `http://localhost:${port}/hello`, title, connections: 50}
   autocannon(Object.assign({duration: 3}, acOpts), () => {
     autocannon(Object.assign({duration: 7}, acOpts), done)
   })
@@ -80,7 +80,7 @@ async function bench () {
   console.log(`servers running, starting benchmarks\n`)
   let keys = shuffler(Object.keys(ports))
   for (let name of keys) await bencher(name)
-  let head = ['lib', 'req/sec', 'latency', 'throughput'].map((h) => {
+  let head = ['lib', 'req/sec', 'latency', 'throughput', 'errors'].map((h) => {
     return {alias: h}
   })
   results.sort((a, b) => b.requests.average - a.requests.average)
@@ -88,7 +88,8 @@ async function bench () {
     r.title,
     r.requests.average,
     r.latency.average,
-    formatBytes(r.throughput.average)
+    formatBytes(r.throughput.average),
+    r.errors + r.non2xx
   ])
   console.log(table(head, rows).render())
   process.exit()

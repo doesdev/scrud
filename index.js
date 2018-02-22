@@ -341,12 +341,11 @@ function actionHandler (req, res, name, action, skipRes) {
   res = res || dummyRes
   let bq = rsrc.beforeQuery || {} // (req, res)
   if (typeof bq !== 'function') bq = bq[action]
+  let hdlr = rsrc[action] || handlers[action]
+  let act = () => hdlr(req, res, name, action, skipRes)
+  if (rsrc[action]) return bq ? bq(req, res).then(act) : act()
   let bs = rsrc.beforeSend || {} // (req, res, data)
   if (typeof bs !== 'function') bs = bs[action]
-  let act = () => rsrc[action]
-      ? rsrc[action](req, res, name, action, skipRes)
-      : handlers[action](name, req)
-  if (rsrc[action]) return bq ? bq(req, res).then(act) : act()
   let send = (d) => skipRes ? Promise.resolve(d) : sendData(res, d)
   let finish = (d) => bs ? bs(req, res, d).then(send) : send(d)
   let run = () => bq ? bq(req, res).then(act).then(finish) : act().then(finish)
