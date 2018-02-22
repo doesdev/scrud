@@ -212,7 +212,6 @@ function handleRequest (req, res) {
   let connection = req.connection || {}
   req.params.ip = headers['x-forwarded-for'] || connection.remoteAddress
   req.once('error', (err) => sendErr(res, err))
-  let jwt = (headers.authorization || '').replace(/^Bearer\s/, '')
   let callHandler = () => {
     if (!hasBody[action]) return actionHandler(req, res, name, action)
     return bodyParse(req).then((body) => {
@@ -222,6 +221,7 @@ function handleRequest (req, res) {
   }
   let noAuth = !jwtOpts || (resource.skipAuth && resource.skipAuth[action])
   if (noAuth) return callHandler()
+  let jwt = (headers.authorization || '').replace(/^Bearer\s/, '')
   authenticate(jwt).then((authData) => {
     req.auth = req.params.auth = authTrans ? authTrans(authData) : authData
     return callHandler()
