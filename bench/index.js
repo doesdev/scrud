@@ -16,6 +16,16 @@ const logStart = (n) => {
 }
 const results = []
 
+const shuffler = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1))
+    var temp = array[i]
+    array[i] = array[j]
+    array[j] = temp
+  }
+  return array
+}
+
 const formatBytes = (bytes) => {
   if (bytes === 0) return '0 Byte'
   let k = 1000
@@ -60,14 +70,16 @@ const bencher = (title) => new Promise((resolve, reject) => {
     results.push(res)
     return resolve(title)
   }
-  let acOpts = {url: `http://localhost:${port}/hello`, title, duration: 5}
-  let instance = autocannon(acOpts, done)
-  process.once('SIGINT', () => instance.stop())
+  let acOpts = {url: `http://localhost:${port}/hello`, title}
+  autocannon(Object.assign({duration: 3}, acOpts), () => {
+    autocannon(Object.assign({duration: 7}, acOpts), done)
+  })
 })
 
 async function bench () {
   console.log(`servers running, starting benchmarks\n`)
-  for (let name in ports) await bencher(name)
+  let keys = shuffler(Object.keys(ports))
+  for (let name of keys) await bencher(name)
   let head = ['lib', 'req/sec', 'latency', 'throughput'].map((h) => {
     return {alias: h}
   })

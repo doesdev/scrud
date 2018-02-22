@@ -220,7 +220,8 @@ function handleRequest (req, res) {
       return actionHandler(req, res, name, action)
     }).catch((e) => sendErr(res, e))
   }
-  if (resource.skipAuth && resource.skipAuth[action]) return callHandler()
+  let noAuth = !jwtOpts || (resource.skipAuth && resource.skipAuth[action])
+  if (noAuth) return callHandler()
   authenticate(jwt).then((authData) => {
     req.auth = req.params.auth = authTrans ? authTrans(authData) : authData
     return callHandler()
