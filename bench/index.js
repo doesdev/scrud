@@ -17,7 +17,10 @@ const logStart = (n) => {
 }
 const results = []
 
-const urlTemplate = (port) => `http://localhost:${port}/hello`
+const urlTemplate = (port, string) => {
+  let url = {host: 'localhost', port, path: '/hello'}
+  return string ? `http://${url.host}:${url.port}${url.path}` : url
+}
 
 const shuffler = (array) => {
   for (let i = array.length - 1; i > 0; i--) {
@@ -73,7 +76,7 @@ const bencher = (title) => new Promise((resolve, reject) => {
     results.push(res)
     return resolve(title)
   }
-  let acOpts = {url: urlTemplate(port), title, connections: 50}
+  let acOpts = {url: urlTemplate(port, true), title, connections: 50}
   autocannon(Object.assign({duration: 3}, acOpts), () => {
     autocannon(Object.assign({duration: 7}, acOpts), done)
   })
@@ -82,7 +85,7 @@ const bencher = (title) => new Promise((resolve, reject) => {
 let lastResult
 const checkConsistency = async (name) => {
   let port = ports[name]
-  let { search } = getScrud({host: 'localhost', port})
+  let { search } = getScrud(urlTemplate(port))
   let tmpRes = await search('hello', {})
   if (!tmpRes || (lastResult && lastResult !== tmpRes)) {
     throw new Error(`Got inconsistent results from libraries`)
