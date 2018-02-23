@@ -2,8 +2,6 @@
 
 // setup
 const http = require('http')
-const { Pool } = require('pg')
-const jsonwebtoken = require('jsonwebtoken')
 const tinyParams = require('tiny-params')
 const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091
@@ -47,6 +45,7 @@ const wlSign = [
 ]
 
 // globals
+let jsonwebtoken
 let logger
 let pgPool
 let jwtOpts
@@ -168,7 +167,10 @@ function register (name, opts = {}) {
 function start (opts = {}) {
   if (opts.namespace) pgPrefix = `${opts.namespace.toLowerCase()}_`
   if (opts.maxBodyBytes) maxBodyBytes = opts.maxBodyBytes
-  if (opts.jsonwebtoken) jwtOpts = opts.jsonwebtoken
+  if (opts.jsonwebtoken) {
+    jsonwebtoken = require('jsonwebtoken')
+    jwtOpts = opts.jsonwebtoken
+  }
   if (opts.logger) logger = opts.logger
   if (opts.base) base = opts.base
   if (opts.authTrans) authTrans = opts.authTrans
@@ -181,7 +183,7 @@ function start (opts = {}) {
     let server = http.createServer(handleRequest)
     server.setTimeout(opts.timeout || defaultTimeout)
     server.listen(opts.port || port)
-    if (opts.postgres) pgPool = new Pool(opts.postgres)
+    if (opts.postgres) pgPool = new (require('pg')).Pool(opts.postgres)
     return resolve(server)
   })
 }
