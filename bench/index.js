@@ -71,8 +71,8 @@ const bencher = (title) => new Promise((resolve, reject) => {
     connections: 50,
     pipelining: 10
   }
-  autocannon(Object.assign({duration: 3}, acOpts), () => {
-    autocannon(Object.assign({duration: 7}, acOpts), done)
+  autocannon(Object.assign({duration: 1}, acOpts), () => {
+    autocannon(Object.assign({duration: 1}, acOpts), done)
   })
 })
 
@@ -108,14 +108,14 @@ async function bench () {
   for (let name of keys) await bencher(name)
   for (let name of keys) await getEndMemory(name)
   let head = [
-    'lib',
-    'req/sec',
-    'latency',
-    'throughput',
-    'errors',
-    'memory (start)',
-    'memory (end)'
-  ].map((h) => { return {alias: h} })
+    {alias: 'lib', width: 12},
+    {alias: 'req/sec', width: 12},
+    {alias: 'latency', width: 12},
+    {alias: 'throughput', width: 14},
+    {alias: 'errors', width: 11},
+    {alias: 'memory (start)'},
+    {alias: 'memory (end)'}
+  ].map((h) => Object.assign({paddingLeft: 0, paddingRight: 0}, h))
   results.sort((a, b) => b.requests.average - a.requests.average)
   let rows = results.map((r) => [
     r.title,
