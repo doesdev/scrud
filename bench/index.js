@@ -71,8 +71,8 @@ const bencher = (title) => new Promise((resolve, reject) => {
     connections: 50,
     pipelining: 10
   }
-  autocannon(Object.assign({duration: 1}, acOpts), () => {
-    autocannon(Object.assign({duration: 1}, acOpts), done)
+  autocannon(Object.assign({duration: 3}, acOpts), () => {
+    autocannon(Object.assign({duration: 7}, acOpts), done)
   })
 })
 
