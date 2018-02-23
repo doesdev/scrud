@@ -206,9 +206,7 @@ function handleRequest (req, res) {
   let action = scrud[`${req.method}${modifier}`]
   if (!resource || !action) return fourOhFour(res)
   let name = resource.name
-  if ((headers['accept-encoding'] || '').match('gzip')) {
-    res.setHeader('Content-Encoding', 'gzip')
-  }
+  res.useGzip = (headers['accept-encoding'] || '').indexOf('gzip') !== -1
   res.setHeader('SCRUD', `${name}:${action}`)
   if (checkId[action]) req.id = parseId(url)
   req.params = tinyParams(url)
@@ -240,11 +238,11 @@ function sendData (res, data = null) {
     data = JSON.stringify({data, error: null})
     let len = Buffer.byteLength(data)
     res.statusCode = 200
-    if (res.getHeader('content-encoding') !== 'gzip' || len < gzipThreshold) {
-      res.removeHeader('content-encoding')
+    if (!res.useGzip || len < gzipThreshold) {
       res.end(data)
       return resolve()
     }
+    res.setHeader('Content-Encoding', 'gzip')
     zlib.gzip(Buffer.from(data), (err, zipd) => {
       if (err) return reject(sendErr(res, err))
       res.end(zipd)
