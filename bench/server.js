@@ -1,7 +1,17 @@
 'use strict'
 
 const ports = {http: 3010, fastify: 3011, polka: 3012, scrud: 3013, express: 3014}
-const logStart = (n) => process.send(n)
+const logStart = (n) => {
+  process.send(n)
+  let { heapUsed, heapTotal } = process.memoryUsage()
+  process.send(`startMem${heapUsed}/${heapTotal}`)
+}
+process.on('message', (m) => {
+  if (m === 'endMemory') {
+    let { heapUsed, heapTotal } = process.memoryUsage()
+    return process.send(`endMem${heapUsed}/${heapTotal}`)
+  }
+})
 const benchId = 301
 const start = {
   http: () => {

@@ -8,14 +8,27 @@ const table = require('tty-table')
 const ports = {http: 3010, fastify: 3011, polka: 3012, scrud: 3013, express: 3014}
 const results = []
 const benchId = 301
+const children = {}
+const memory = {}
 Promise.all(Object.keys(ports).map((k) => new Promise((resolve, reject) => {
-  let child = fork(join(__dirname, 'server'), [k])
+  let child = children[k] = fork(join(__dirname, 'server'), [k])
   child.once('error', (err) => {
     console.log(err)
     process.exit()
   })
-  child.once('message', (m) => {
-    (m === k) ? resolve() : reject(m)
+  let started
+  let gotMemory
+  child.on('message', (m) => {
+    let endMem = m.match(/^endMem(.*)/)
+    if (endMem) {
+      memory[k].end = endMem[1]
+      child.kill()
+    }
+    started = started || m === k
+    let startMem = m.match(/^startMem(.*)/)
+    gotMemory = gotMemory || startMem
+    if (startMem) memory[k] = {start: startMem[1]}
+    if (gotMemory && started) return resolve()
   })
 }))).then(() => bench())
 
@@ -37,7 +50,7 @@ const shuffler = (array) => {
 const formatBytes = (bytes) => {
   if (bytes === 0) return '0 Byte'
   let k = 1000
-  let dm = 3
+  let dm = 2
   let sizes = ['Bytes', 'KB', 'MB', 'GB']
   let i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
@@ -76,6 +89,11 @@ const checkConsistency = async (name) => {
   last = {lib: name, result: tmpRes}
 }
 
+const getEndMemory = (name) => new Promise((resolve, reject) => {
+  children[name].on('exit', () => resolve())
+  children[name].send('endMemory')
+})
+
 async function bench () {
   console.log(`servers running, starting benchmarks\n`)
   let keys = shuffler(Object.keys(ports))
@@ -88,16 +106,25 @@ async function bench () {
     }
   }
   for (let name of keys) await bencher(name)
-  let head = ['lib', 'req/sec', 'latency', 'throughput', 'errors'].map((h) => {
-    return {alias: h}
-  })
+  for (let name of keys) await getEndMemory(name)
+  let head = [
+    'lib',
+    'req/sec',
+    'latency',
+    'throughput',
+    'errors',
+    'memory (start)',
+    'memory (end)'
+  ].map((h) => { return {alias: h} })
   results.sort((a, b) => b.requests.average - a.requests.average)
   let rows = results.map((r) => [
     r.title,
     r.requests.average,
     r.latency.average,
     formatBytes(r.throughput.average),
-    r.errors + r.non2xx
+    r.errors + r.non2xx,
+    memory[r.title].start.split('/').map(formatBytes).join('\n'),
+    memory[r.title].end.split('/').map(formatBytes).join('\n')
   ])
   console.log(table(head, rows).render())
   process.exit()
