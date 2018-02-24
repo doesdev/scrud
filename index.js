@@ -1,7 +1,7 @@
 'use strict'
 
 // setup
-const http = require('http')
+const http = require('http-minimal')
 const tinyParams = require('tiny-params')
 const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091
@@ -57,6 +57,8 @@ let maxBodyBytes = 1e6
 let resources = {}
 let allowOrigins = {}
 let gzipThreshold = 1000
+let getIp
+let setScrudHeader
 
 // local helpers
 const logIt = (e, level = 'fatal') => {
@@ -173,6 +175,8 @@ function start (opts = {}) {
   }
   if (opts.logger) logger = opts.logger
   if (opts.base) base = opts.base
+  if (opts.getIp) getIp = true
+  if (opts.setScrudHeader) setScrudHeader = true
   if (opts.authTrans) authTrans = opts.authTrans
   if (opts.gzipThreshold) gzipThreshold = opts.gzipThreshold
   if (Array.isArray(opts.allowOrigins)) {
@@ -193,8 +197,10 @@ function handleRequest (req, res) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
   let headers = req.headers || {}
   let origin = headers['origin']
-  if (origin && !allowOrigins[origin]) return rejectPreflight(res, origin)
-  if (origin) res.setHeader('Access-Control-Allow-Origin', origin)
+  if (origin) {
+    if (!allowOrigins[origin]) return rejectPreflight(res, origin)
+    res.setHeader('Access-Control-Allow-Origin', origin)
+  }
   if (req.method === 'OPTIONS' && headers['access-control-request-method']) {
     return ackPreflight(res, origin, headers['access-control-request-headers'])
   }
@@ -207,11 +213,13 @@ function handleRequest (req, res) {
   if (!resource || !action) return fourOhFour(res)
   let name = resource.name
   res.useGzip = (headers['accept-encoding'] || '').indexOf('gzip') !== -1
-  res.setHeader('SCRUD', `${name}:${action}`)
+  if (setScrudHeader) res.setHeader('SCRUD', `${name}:${action}`)
   if (checkId[action]) req.id = parseId(url)
   req.params = tinyParams(url)
-  let connection = req.connection || {}
-  req.params.ip = headers['x-forwarded-for'] || connection.remoteAddress
+  if (getIp) {
+    let connection = req.connection || {}
+    req.params.ip = headers['x-forwarded-for'] || connection.remoteAddress
+  }
   req.once('error', (err) => sendErr(res, err))
   let callHandler = () => {
     if (!hasBody[action]) return actionHandler(req, res, name, action)
