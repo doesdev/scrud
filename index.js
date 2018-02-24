@@ -204,7 +204,6 @@ function handleRequest (req, res) {
   if (req.method === 'OPTIONS' && headers['access-control-request-method']) {
     return ackPreflight(res, origin, headers['access-control-request-headers'])
   }
-  if (!baseRgx.test(req.url)) return fourOhFour(res)
   let url = cleanPath(req.url)
   let matches = url.match(/^\/?(.+?)(\/|\?|$)/) || []
   let resource = resources[matches[1] || '']
