@@ -69,7 +69,8 @@ const bencher = (title) => new Promise((resolve, reject) => {
     url: urlTemplate(port, true),
     title,
     connections: 50,
-    pipelining: 10
+    pipelining: 10,
+    headers: {'accept-encoding': 'gzip, deflate, br'}
   }
   autocannon(Object.assign({duration: 3}, acOpts), () => {
     autocannon(Object.assign({duration: 7}, acOpts), done)
