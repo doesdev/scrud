@@ -1,7 +1,7 @@
 'use strict'
 
 // setup
-const http = require('http-minimal')
+const http = require('http')
 const tinyParams = require('tiny-params')
 const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091

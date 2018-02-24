@@ -23,6 +23,7 @@ const opts = {
   namespace: 'scrud',
   allowOrigins,
   logger,
+  setScrudHeader: true,
   jsonwebtoken: {
     secret: `SomeRandomAstString`,
     algorithm: `HS256`,
@@ -32,6 +33,7 @@ const opts = {
   }
 }
 Object.assign(opts, require('./../_secrets/scrud/config.json'))
+const { sendData } = scrud
 
 // globals
 let id, apiCall, jwt
@@ -106,4 +108,19 @@ test(`exported SCRUD helpers work as expected`, async (assert) => {
   await assert.notThrows(scrud.update('member', {id: locId, params: {zip: 37610}}))
   assert.is((await scrud.read('member', {id: locId, params: {}})).zip, '37610')
   await assert.notThrows(scrud.delete('member', {id: locId, params: {}}))
+})
+
+test(`basePth and path edge cases are handled properly`, async (assert) => {
+  let hdl = (req, res) => Promise.resolve(sendData(res, 'test'))
+  let handlers = {search: hdl, create: hdl, read: hdl, update: hdl, delete: hdl}
+  await scrud.register('api', handlers)
+  let headers = {Authorization: `Bearer ${jwt}`}
+  let res
+  res = await axios(`http://localhost:${port}${basePath}/api/1`, {headers})
+  assert.is(res.headers.scrud, 'api:read')
+  res = await axios(`http://localhost:${port}${basePath}/api/ `, {headers})
+  assert.is(res.headers.scrud, 'api:search')
+  let enc = encodeURIComponent('?a=b&c[]=d._*j')
+  res = await axios(`http://localhost:${port}${basePath}/api${enc} `, {headers})
+  assert.is(res.headers.scrud, 'api:search')
 })
