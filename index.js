@@ -51,8 +51,8 @@ let pgPool
 let jwtOpts
 let authTrans
 let pgPrefix = ''
-let base = ''
-let baseRgx = new RegExp(`^/?${base}/`)
+let base = '/'
+let baseChars = base.length
 let maxBodyBytes = 1e6
 let resources = {}
 let allowOrigins = {}
@@ -65,14 +65,26 @@ const logIt = (e, level = 'fatal') => {
   typeof logger === 'function' ? logger(e, level) : console.log(e)
 }
 
-const cleanPath = (url) => {
-  return decodeURIComponent(url).replace(baseRgx, '').replace(/\/$/, '')
-}
-
-const parseId = (url) => {
-  let id = (url.match(/\/(.+?)(\/|\?|$)/) || [])[1]
-  id = (id || '').match(/^\d+$/) ? parseInt(id, 10) : id || null
-  return id === 'null' || id === 'undefined' ? null : id
+const parseUrl = (req) => {
+  let fullUrl = decodeURIComponent(req.url)
+  let url = fullUrl.slice(baseChars)
+  let modIdx = url.indexOf('/')
+  let id
+  if (modIdx === -1) {
+    modIdx = url.indexOf('?')
+  } else if (modIdx !== url.length - 1) {
+    let postMod = url.slice(modIdx + 1)
+    if (postMod) {
+      let nextMod = postMod.indexOf('/')
+      if (nextMod === -1) nextMod = postMod.indexOf('?')
+      id = nextMod === -1 ? postMod : postMod.slice(0, nextMod)
+    }
+  }
+  let noMod = modIdx === -1
+  let name = noMod ? url : url.slice(0, modIdx)
+  let modifier = noMod || modIdx === url.length - 1 ? '' : url.charAt(modIdx)
+  let action = scrud[`${req.method}${modifier}`]
+  return { url, name, action, id }
 }
 
 const callPgFunc = (name, params, req) => {
@@ -174,7 +186,10 @@ function start (opts = {}) {
     jwtOpts = opts.jsonwebtoken
   }
   if (opts.logger) logger = opts.logger
-  if (opts.base) base = opts.base
+  if (opts.base) {
+    base = `/${opts.base}/`.replace(/\/+/g, '/')
+    baseChars = base.length
+  }
   if (opts.getIp) getIp = true
   if (opts.setScrudHeader) setScrudHeader = true
   if (opts.authTrans) authTrans = opts.authTrans
@@ -182,7 +197,6 @@ function start (opts = {}) {
   if (Array.isArray(opts.allowOrigins)) {
     opts.allowOrigins.forEach((k) => { allowOrigins[k] = true })
   }
-  baseRgx = new RegExp(`^/?${base}/`)
   return new Promise((resolve, reject) => {
     let server = http.createServer(handleRequest)
     server.setTimeout(opts.timeout || defaultTimeout)
@@ -204,16 +218,12 @@ function handleRequest (req, res) {
   if (req.method === 'OPTIONS' && headers['access-control-request-method']) {
     return ackPreflight(res, origin, headers['access-control-request-headers'])
   }
-  let url = cleanPath(req.url)
-  let matches = url.match(/^\/?(.+?)(\/|\?|$)/) || []
-  let resource = resources[matches[1] || '']
-  let modifier = matches[2]
-  let action = scrud[`${req.method}${modifier}`]
+  let { url, name, action, id } = parseUrl(req)
+  let resource = resources[name]
   if (!resource || !action) return fourOhFour(res)
-  let name = resource.name
   res.useGzip = (headers['accept-encoding'] || '').indexOf('gzip') !== -1
   if (setScrudHeader) res.setHeader('SCRUD', `${name}:${action}`)
-  if (checkId[action]) req.id = parseId(url)
+  if (checkId[action]) req.id = id
   req.params = tinyParams(url)
   if (getIp) {
     let connection = req.connection || {}
