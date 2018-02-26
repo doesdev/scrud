@@ -60,6 +60,7 @@ let allowOrigins = {}
 let gzipThreshold = 1000
 let getIp
 let setScrudHeader
+let noCache
 
 // local helpers
 const logIt = (e, level = 'fatal') => {
@@ -199,6 +200,7 @@ function start (opts = {}) {
     baseChars = base.length
   }
   if (opts.getIp) getIp = true
+  if (opts.noCache) noCache = true
   if (opts.setScrudHeader) setScrudHeader = true
   if (opts.authTrans) authTrans = opts.authTrans
   if (opts.gzipThreshold) gzipThreshold = opts.gzipThreshold
@@ -261,7 +263,7 @@ function sendData (res, data = null) {
     return Promise.resolve()
   }
   let tmp = sendCache
-  let canCache = !data || primitives[typeof data]
+  let canCache = !noCache && (!data || primitives[typeof data])
   let hasCache = canCache && data === tmp.data
   return new Promise((resolve, reject) => {
     let out = hasCache ? tmp.out : JSON.stringify({data, error: null})
