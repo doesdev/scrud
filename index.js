@@ -7,7 +7,7 @@ const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
 const checkId = {read: true, update: true, delete: true}
-const primitives = {string: true, number: true}
+const primitives = {string: true, number: true, boolean: true}
 const noop = () => {}
 const dummyRes = {
   addTrailers: noop,
