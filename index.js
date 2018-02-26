@@ -7,6 +7,7 @@ const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
 const checkId = {read: true, update: true, delete: true}
+const primitives = {string: true, number: true}
 const noop = () => {}
 const dummyRes = {
   addTrailers: noop,
@@ -253,21 +254,26 @@ function handleRequest (req, res) {
   }).catch((err) => fourOhOne(res, err))
 }
 
+let sendCache = {}
 function sendData (res, data = null) {
   if (res.headersSent) {
     logIt(new Error(`Can't send data after headers sent`), 'warn')
     return Promise.resolve()
   }
+  let tmp = sendCache
+  let canCache = !data || primitives[typeof data]
+  let hasCache = canCache && data === tmp.data
   return new Promise((resolve, reject) => {
-    data = JSON.stringify({data, error: null})
-    let len = Buffer.byteLength(data)
+    let out = hasCache ? tmp.out : JSON.stringify({data, error: null})
+    let len = hasCache ? tmp.len : Buffer.byteLength(out)
+    if (canCache && !hasCache) sendCache = {data, out, len}
     res.statusCode = 200
     if (!res.useGzip || len < gzipThreshold) {
-      res.end(data)
+      res.end(out)
       return resolve()
     }
     res.setHeader('Content-Encoding', 'gzip')
-    zlib.gzip(Buffer.from(data), (err, zipd) => {
+    zlib.gzip(Buffer.from(out), (err, zipd) => {
       if (err) return reject(sendErr(res, err))
       res.end(zipd)
       return resolve()
