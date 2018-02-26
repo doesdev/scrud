@@ -14,12 +14,13 @@ process.on('message', (m) => {
   }
 })
 const toSend = process.argv[2] === 'lob' ? base64 : 301
+const preRendered = JSON.stringify({data: toSend, error: null})
 const start = {
   http: () => {
     const http = require('http')
     http.createServer((req, res) => {
       res.setHeader('Content-Type', 'application/json')
-      res.end(JSON.stringify({data: toSend, error: null}))
+      res.end(preRendered)
     }).listen(ports.http, () => logStart('http'))
   },
   fastify: () => {
@@ -43,7 +44,7 @@ const start = {
   express: () => {
     const express = require('express')
     express().get('/bench/:id', (req, res) => {
-      res.end(JSON.stringify({data: toSend, error: null}))
+      res.json({data: toSend, error: null})
     }).listen(ports.express, () => logStart('express'))
   }
 }
