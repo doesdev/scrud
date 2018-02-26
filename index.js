@@ -266,11 +266,15 @@ function sendData (res, data = null) {
   let canCache = !noCache && (!data || primitives[typeof data])
   let hasCache = canCache && data === tmp.data
   return new Promise((resolve, reject) => {
-    let out = hasCache ? tmp.out : JSON.stringify({data, error: null})
-    let len = hasCache ? tmp.len : Buffer.byteLength(out)
-    if (canCache && !hasCache) sendCache = {data, out, len}
+    let { out, big } = tmp
+    if (!hasCache) {
+      out = JSON.stringify({data, error: null})
+      let dblLen = out.length * 2 + 1
+      big = !(dblLen < gzipThreshold || Buffer.byteLength(out) < gzipThreshold)
+    }
+    if (canCache && !hasCache) sendCache = {data, out, big}
     res.statusCode = 200
-    if (!res.useGzip || len < gzipThreshold) {
+    if (!res.useGzip || !big) {
       res.end(out)
       return resolve()
     }
