@@ -65,7 +65,10 @@ const logIt = (e, level = 'fatal') => {
   typeof logger === 'function' ? logger(e, level) : console.log(e)
 }
 
+let lastParsed = {}
 const parseUrl = (req) => {
+  let sig = `${req.method}${req.url}`
+  if (lastParsed.sig === sig) return lastParsed.data
   let fullUrl = decodeURIComponent(req.url)
   let url = fullUrl.slice(baseChars)
   let modIdx = url.indexOf('/')
@@ -84,7 +87,10 @@ const parseUrl = (req) => {
   let name = noMod ? url : url.slice(0, modIdx)
   let modifier = noMod || modIdx === url.length - 1 ? '' : url.charAt(modIdx)
   let action = scrud[`${req.method}${modifier}`]
-  return { url, name, action, id }
+  let params = tinyParams(url)
+  let data = { url, name, action, id, params }
+  lastParsed = { sig, data }
+  return data
 }
 
 const callPgFunc = (name, params, req) => {
@@ -218,13 +224,13 @@ function handleRequest (req, res) {
   if (req.method === 'OPTIONS' && headers['access-control-request-method']) {
     return ackPreflight(res, origin, headers['access-control-request-headers'])
   }
-  let { url, name, action, id } = parseUrl(req)
+  let { name, action, id, params } = parseUrl(req)
   let resource = resources[name]
   if (!resource || !action) return fourOhFour(res)
   res.useGzip = (headers['accept-encoding'] || '').indexOf('gzip') !== -1
   if (setScrudHeader) res.setHeader('SCRUD', `${name}:${action}`)
   if (checkId[action]) req.id = id
-  req.params = tinyParams(url)
+  req.params = params
   if (getIp) {
     let connection = req.connection || {}
     req.params.ip = headers['x-forwarded-for'] || connection.remoteAddress
