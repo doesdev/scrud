@@ -19,7 +19,7 @@ const start = {
   http: () => {
     const http = require('http')
     http.createServer((req, res) => {
-      res.setHeader('Content-Type', 'application/json')
+      res.setHeader('Content-Type', 'application/json; charset=utf-8')
       res.end(preRendered)
     }).listen(ports.http, () => logStart('http'))
   },
@@ -33,6 +33,7 @@ const start = {
   polka: () => {
     const polka = require('polka')
     polka().get('/bench/:id', (req, res) => {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8')
       res.end(JSON.stringify({data: toSend, error: null}))
     }).listen(ports.polka).then(() => logStart('polka'))
   },

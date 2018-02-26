@@ -2,7 +2,7 @@
 
 const { fork } = require('child_process')
 const { join } = require('path')
-const getScrud = require('get-scrud')
+const { get } = require('axios')
 const autocannon = require('autocannon')
 const table = require('tty-table')
 const ports = {http: 3010, fastify: 3011, polka: 3012, scrud: 3013, express: 3014}
@@ -81,14 +81,15 @@ const bencher = (title) => new Promise((resolve, reject) => {
 let last = {}
 const checkConsistency = async (name) => {
   let port = ports[name]
-  let { read } = getScrud(urlTemplate(port))
-  let tmpRes = await read('bench', benchId)
-  if (!tmpRes || (last.lib && last.result !== tmpRes)) {
+  let { data, headers } = await get(urlTemplate(port, true))
+  let isJSON = headers['content-type'].indexOf('application/json') !== -1
+  data = `${JSON.stringify(data)}-isJson:${isJSON}`
+  if (!data || (last.lib && last.result !== data)) {
     let err = new Error(`Got inconsistent results from libraries`)
-    err.meta = [`${last.lib} - ${last.result}`, `${name} - ${tmpRes}`]
+    err.meta = [`${last.lib} - ${last.result}`, `${name} - ${data}`]
     throw err
   }
-  last = {lib: name, result: tmpRes}
+  last = {lib: name, result: data}
 }
 
 const getEndMemory = (name) => new Promise((resolve, reject) => {
