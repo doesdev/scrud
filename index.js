@@ -71,14 +71,14 @@ const parseUrl = (req) => {
   let tmp = lastParsed
   let sig = `${req.method}${req.url}`
   if (tmp.sig === sig) return tmp.data
-  let fullUrl = decodeURIComponent(req.url)
-  let url = fullUrl.slice(baseChars)
-  let modIdx = url.indexOf('/')
+  let url = decodeURIComponent(req.url).slice(baseChars)
+  let sIdx = url.indexOf('/')
+  let qIdx = url.indexOf('?')
+  let modIdx = (sIdx === -1 || (qIdx !== -1 && sIdx > qIdx)) ? qIdx : sIdx
+  let lastIdx = url.length - 1
   let id
-  if (modIdx === -1) {
-    modIdx = url.indexOf('?')
-  } else if (modIdx !== url.length - 1) {
-    let postMod = url.slice(modIdx + 1)
+  if (sIdx === modIdx) {
+    let postMod = url.slice(sIdx + 1)
     if (postMod) {
       let nextMod = postMod.indexOf('/')
       if (nextMod === -1) nextMod = postMod.indexOf('?')
@@ -87,7 +87,7 @@ const parseUrl = (req) => {
   }
   let noMod = modIdx === -1
   let name = noMod ? url : url.slice(0, modIdx)
-  let modifier = noMod || modIdx === url.length - 1 ? '' : url.charAt(modIdx)
+  let modifier = noMod || modIdx === lastIdx ? '' : url.charAt(modIdx)
   let action = scrud[`${req.method}${modifier}`]
   let params = tinyParams(url)
   let data = { url, name, action, id, params }

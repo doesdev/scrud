@@ -122,7 +122,7 @@ test(`basePth and path edge cases are handled properly`, async (assert) => {
   assert.is(res.headers.scrud, 'api:read')
   res = await axios(`http://localhost:${port}${basePath}/api/ `, {headers})
   assert.is(res.headers.scrud, 'api:search')
-  let enc = encodeURIComponent('?a=b&c[]=d._*j')
+  let enc = encodeURIComponent(`?a=b&c[]=._*j&d=1/1/18&e=f?k`)
   res = await axios(`http://localhost:${port}${basePath}/api${enc} `, {headers})
   assert.is(res.headers.scrud, 'api:search')
 })
