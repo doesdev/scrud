@@ -13,7 +13,7 @@ process.on('message', (m) => {
     return process.send(`endMem${heapUsed}/${heapTotal}`)
   }
 })
-const toSend = process.argv[2] === 'lob' ? base64 : 301
+const toSend = process.argv[3] === 'lob' ? base64 : 301
 const preRendered = JSON.stringify({data: toSend, error: null})
 const start = {
   http: () => {

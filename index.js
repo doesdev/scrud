@@ -273,8 +273,13 @@ function sendData (res, data = null) {
       return resolve()
     }
     res.setHeader('Content-Encoding', 'gzip')
+    if (sendCache.gzip) {
+      res.end(sendCache.gzip)
+      return resolve()
+    }
     zlib.gzip(Buffer.from(out), (err, zipd) => {
       if (err) return reject(sendErr(res, err))
+      sendCache.gzip = zipd
       res.end(zipd)
       return resolve()
     })

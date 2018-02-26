@@ -10,8 +10,9 @@ const results = []
 const benchId = 301
 const children = {}
 const memory = {}
+let lob = process.argv[2] === '--lob' || process.argv[2] === 'lob'
 Promise.all(Object.keys(ports).map((k) => new Promise((resolve, reject) => {
-  let child = children[k] = fork(join(__dirname, 'server'), [k])
+  let child = children[k] = fork(join(__dirname, 'server'), [k, lob ? 'lob' : ''])
   child.once('error', (err) => {
     console.log(err)
     process.exit()
@@ -68,8 +69,8 @@ const bencher = (title) => new Promise((resolve, reject) => {
   let acOpts = {
     url: urlTemplate(port, true),
     title,
-    connections: 50,
-    pipelining: 10,
+    connections: lob ? 10 : 50,
+    pipelining: lob ? 1 : 10,
     headers: {'accept-encoding': 'gzip, deflate, br'}
   }
   autocannon(Object.assign({duration: 3}, acOpts), () => {
