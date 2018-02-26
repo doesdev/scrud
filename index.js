@@ -67,8 +67,9 @@ const logIt = (e, level = 'fatal') => {
 
 let lastParsed = {}
 const parseUrl = (req) => {
+  let tmp = lastParsed
   let sig = `${req.method}${req.url}`
-  if (lastParsed.sig === sig) return lastParsed.data
+  if (tmp.sig === sig) return tmp.data
   let fullUrl = decodeURIComponent(req.url)
   let url = fullUrl.slice(baseChars)
   let modIdx = url.indexOf('/')
