@@ -24,7 +24,7 @@
 Glad you asked. Yes, it is. As always, take benches with a grain of salt. The point is we care about speed and optimize for it. To see benchmarking details check out the bench directory. The gist is this, all libs return a simple JSON response and the proper content-type headers. Each server is run in their own forked process and gets a warm up run for 3 seconds before we start tracking the results.
 
 <div align="center">
-  <img src="https://github.com/doesdev/scrud/raw/master/assets/node-web-lib-bench-latest-pretty.png" alt="SCRUD" />
+  <img src="https://github.com/doesdev/scrud/raw/master/assets/bench.png" alt="SCRUD" />
 </div>
 
 
