@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="https://github.com/doesdev/scrud/raw/master/assets/scrud-logo.png" alt="SCRUD" width="400" />
+</div>
+
 # scrud [![NPM version](https://badge.fury.io/js/scrud.svg)](https://npmjs.org/package/scrud)   [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)   [![Dependency Status](https://dependencyci.com/github/doesdev/scrud/badge)](https://dependencyci.com/github/doesdev/scrud)
 
 > Super opinionated, minimalistic, PG centric API fabric
@@ -14,6 +18,15 @@
 
 - me mostly
 - organizations / individuals comfortable working with business logic in Postgres
+
+# is it fast
+
+Glad you asked. Yes, it is. As always, take benches with a grain of salt. The point is we care about speed and optimize for it. To see benchmarking details check out the bench directory. The gist is this, all libs return a simple JSON response and the proper content-type headers. Each server is run in their own forked process and gets a warm up run for 3 seconds before we start tracking the results.
+
+<div align="center">
+  <img src="https://github.com/doesdev/scrud/raw/master/assets/node-web-lib-bench-latest-pretty.png" alt="SCRUD" />
+</div>
+
 
 # install
 
