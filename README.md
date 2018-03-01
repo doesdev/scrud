@@ -4,24 +4,43 @@
 
 # scrud [![NPM version](https://badge.fury.io/js/scrud.svg)](https://npmjs.org/package/scrud)   [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)   [![Dependency Status](https://dependencyci.com/github/doesdev/scrud/badge)](https://dependencyci.com/github/doesdev/scrud)
 
-> Super opinionated, minimalistic, PG centric API fabric
+> SCRUD API server, fast, light, capable
 
-# what it is
+# what is SCRUD
 
-- a collection of helpers that allow you to stand up APIs rapidly
-- extremely opinionated
-- driven by PostgreSQL functions
-- all APIs revolve around [SCRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) actions
-- all resource actions have default handlers but can be individually overridden
+It's just [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) with a search action included in the package.
+- search
+- create
+- read
+- update
+- delete
+
+Every resource has corresponding SCRUD actions which are expressed in the HTTP methods and path (resource ids and query params).
+
+# what is this module
+
+- a blazing fast API server
+- a resourceful SCRUD based router
+- a collection of tools that allow you to stand up APIs rapidly
+- opinionated
+- full featured (PG, gzip, CORS, and JWT fully integrated)
+- a wire between your SCRUD PostgreSQL functions and the client
 
 # who is it for
 
 - me mostly
-- organizations / individuals comfortable working with business logic in Postgres
+- folks who need a fast and effective resource driven API server
+- organizations / individuals who like PostgreSQL and need a solid frontend
 
 # is it fast
 
-Glad you asked. Yes, it is. As always, take benches with a grain of salt. The point is we care about speed and optimize for it. To see benchmarking details check out the bench directory. The gist is this, all libs return a simple JSON response and the proper content-type headers. Each server is run in their own forked process and gets a warm up run for 3 seconds before we start tracking the results.
+Glad you asked. Yes, it is.
+
+# benchmarks
+
+As always, take benches with a grain of salt. The point is that we care about performance and optimize for it. To see benchmarking details check out the bench directory. The gist is this, all libs return a simple JSON response and the proper content-type headers. Each server is run in their own forked process and gets a warm up run for 3 seconds before we start tracking the results.
+
+Node's `http` built-in is given the advantage of pre-rendered JSON, as it is the benchmark. SCRUD and Polka bounce back and forth in second position. To be clear SCRUD only handles resourceful SCRUD routes, Polka packs a more capable router which handles less standardized routes and an Express compatible middleware handler. SCRUD is focused on APIs and microservices.
 
 <div align="center">
   <img src="https://github.com/doesdev/scrud/raw/master/assets/bench.png" alt="SCRUD" />
@@ -34,43 +53,77 @@ Glad you asked. Yes, it is. As always, take benches with a grain of salt. The po
 $ npm install --save scrud
 ```
 
+# usage
+
+```js
+const scrud = require('scrud')
+const config = require('./secrets.json')
+
+async function main () {
+  let memberHandler = {
+    update: (req, res) => scrud.sendData(res, 'not updated, goteem'),
+    delete: (req, res) => scrud.sendErr(res, new Error('Resource cannot be deleted')),
+    beforeQuery: {
+      search: (req, res) => {
+        delete req.params.someProperty
+        return Promise.resolve()
+      }
+    },
+    beforeSend: {
+      read: (req, res, data) => {
+        data.meaningOfLife = 42
+        return Promise.resolve(data)
+      }
+    }
+  }
+  await scrud.register('member', memberHandler)
+  await scrud.start(config)
+}
+```
+
 # api
 
-### scrud.register(name, options)
+### scrud.register(resourceName, actionHandlers)
 - Registers a resource as an API, enabling it to respond to SCRUD actions against it
 - A common pattern would be registering resources that correlate to database tables
 - Does not have to correlate to a database table
-- If actions are not being overridden requires matching PG functions for each action
+- If actions handlers are not specified then matching PG functions for each action are required
 - Each PG function matches pattern `${namespace}_${resource}_${action}(IN jsonb, OUT jsonb)`
 - PG functions receive `JSONB` object containing the following
   - `auth` - auth object (i.e. JWT payload)
-  - `ip` - client IP address
+  - `ip` - **(if `getIp` enabled)** client IP address
   - `id` - resource id for `READ`, `UPDATE`, `DELETE`
   - `id_array` - array of single resource id for `READ`
   - anything passed as querystring or in JSON body will be passed along and should be validated / escaped within PG functions
-- PG functions are expected to reply with an array of record in `JSONB` format
+- PG functions are expected to reply with an array of records in `JSONB` format
 - All PG functions should reply with array, even if they act on single resource
 
 ***Returns:*** Promise which with resolves with resource object
 
 ***Arguments:***
-- **name** *(String)* - *required*
-- **options** *(Object)* - *optional*
-  - **search** - *optional*
-    - type: `Function` - receives (http.ClientRequest, http.ServerResponse)
-    - default: calls `${namespace}_${resource}_search(IN jsonb, OUT jsonb)` PG function and responds to client with array of records or error
-  - **create** - *optional*
-    - type: `Function` - receives (http.ClientRequest, http.ServerResponse)
-    - default: calls `${namespace}_${resource}_create(IN jsonb, OUT jsonb)` PG function and responds to client with created record or error
-  - **read** - *optional*
-    - type: `Function` - receives (http.ClientRequest, http.ServerResponse)
-    - default: calls `${namespace}_${resource}_read(IN jsonb, OUT jsonb)` PG function and responds to client with record or error
-  - **update** - *optional*
-    - type: `Function` - receives (http.ClientRequest, http.ServerResponse)
-    - default: calls `${namespace}_${resource}_update(IN jsonb, OUT jsonb)` PG function and responds to client with updated record or error
-  - **delete** - *optional*
-    - type: `Function` - receives (http.ClientRequest, http.ServerResponse)
-    - default: calls `${namespace}_${resource}_delete(IN jsonb, OUT jsonb)` PG function and responds to client with data (success) or error
+- **resourceName** - `String` - *required* - example: `'user'`
+- **actionHandlers** - `Object` - *optional*
+  - example: `{read: (req, res) => scrud.sendData(res, req.params.id)}`
+  - **search**, **create**, **read**, **update**, **delete** - *optional*
+    - type: `Function`
+    - receives: (http.ClientRequest, http.ServerResponse)
+    - default: calls `${namespace}_${resource}_${action}(IN jsonb, OUT jsonb)` PG function and responds to client with array of records or error
+  - **beforeQuery** - `Object` - optional
+    - example: `{beforeQuery: {delete: (req, res) => scrud.logIt(req.ip, 'debug')}}`
+    - **search**, **create**, **read**, **update**, **delete** - *optional*
+      - type: `Function`
+      - receives: (http.ClientRequest, http.ServerResponse)
+      - should return: `Promise`
+      - default: `null`
+      - **IMPORTANT:** If a Promise isn't returned or doesn't resolve or reject and the function doesn't close the response it will be hung
+  - **beforeSend** - `Object` - optional
+    - example: `{beforeSend: {read: (req, res, data) => Promise.resolve('hello')}}`
+    - **search**, **create**, **read**, **update**, **delete** - *optional*
+      - type: `Function`
+      - receives: (http.ClientRequest, http.ServerResponse, data)
+      - should return: `Promise` that resolves with data to be sent to client
+      - default: `null`
+      - **IMPORTANT:** If a Promise isn't returned or doesn't resolve or reject and the function doesn't close the response it will be hung. Also, the data that is sent in the promise resolution will be passed to the client, be sure it's what you intend to send.
 
 ### scrud.start(options)
 Set global options and start API server
@@ -78,7 +131,7 @@ Set global options and start API server
 ***Returns:*** Promise which with resolves with http.Server
 
 ***Arguments:***
-- **options** *(Object)* - *required*
+- **options** - `Object` - *required*
   - **basePath** - *optional* - base path for APIs (i.e. `https://host.com/${basePath}/resource`)
     - type: `String`
     - default: `null`
@@ -97,6 +150,9 @@ Set global options and start API server
   - **logger** - *optional* - callback that will get called with any errors encountered
     - type: `Function` - receives (Error, String[loglevel])
     - default: `console.log`
+  - **getIp** - *optional* - should client IP be added to request object
+    - type: `Boolean`
+    - default: `false`
   - **authTrans** - *optional* - Synchronous function that transforms the passed in auth object before proceeding with processing
     - type: `Function` - receives (Object[auth / JWT payload)])
     - default: `1e6`
@@ -128,17 +184,9 @@ Set global options and start API server
 - `update`(resource, request) - run registered update handler for resource  
 - `delete`(resource, request) - run registered delete handler for resource  
 
-# usage
+## related
 
-```js
-const scrud = require('scrud')
-const config = require('./secrets.json')
-
-async function main () {
-  await scrud.register('member')
-  await scrud.start(config)
-}
-```
+[get-scrud](https://github.com/doesdev/get-scrud) - A handy client for SCRUD APIs, backed by `axios`
 
 # license
 
