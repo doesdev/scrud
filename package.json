@@ -1,7 +1,7 @@
 {
   "name": "scrud",
   "version": "4.2.0",
-  "description": "Super opinionated, minimalistic, PG centric API fabric",
+  "description": "SCRUD API server, fast, light, capable",
   "engines": {
     "node": ">=6.0.0"
   },
