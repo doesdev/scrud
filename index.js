@@ -1,7 +1,6 @@
 'use strict'
 
 // setup
-const http = require('http')
 const tinyParams = require('tiny-params')
 const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091
@@ -61,6 +60,7 @@ let gzipThreshold = 1000
 let getIp
 let setScrudHeader
 let noCache
+let turbo
 
 // local helpers
 const logIt = (e, level = 'fatal') => {
@@ -124,14 +124,15 @@ const callPgFunc = (name, params, req) => {
 
 const bodyParse = (req) => new Promise((resolve, reject) => {
   let body = ''
-  req.on('data', (d) => {
+  let ondata = (d) => {
     body += d.toString()
     if (body.length > maxBodyBytes) return reject(new Error('Body too large'))
-  })
+  }
+  turbo ? (req.ondata = ondata) : req.on('data', ondata)
   let parse = () => {
     try { resolve(body ? JSON.parse(body) : {}) } catch (ex) { resolve({}) }
   }
-  req.on('end', parse)
+  turbo ? (req.onend = parse) : req.on('end', parse)
 })
 
 const filterObj = (obj, ary) => {
@@ -207,9 +208,19 @@ function start (opts = {}) {
   if (Array.isArray(opts.allowOrigins)) {
     opts.allowOrigins.forEach((k) => { allowOrigins[k] = true })
   }
+  let http
+  if (opts.turbo !== false) {
+    try {
+      http = require('turbo-http')
+      turbo = true
+    } catch (ex) {
+      http = require('http')
+      turbo = false
+    }
+  }
   return new Promise((resolve, reject) => {
     let server = http.createServer(handleRequest)
-    server.setTimeout(opts.timeout || defaultTimeout)
+    if (server.setTimeout) server.setTimeout(opts.timeout || defaultTimeout)
     server.listen(opts.port || port)
     if (opts.postgres) pgPool = new (require('pg')).Pool(opts.postgres)
     return resolve(server)
@@ -219,7 +230,7 @@ function start (opts = {}) {
 // request handler
 function handleRequest (req, res) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
-  let headers = req.headers || {}
+  let headers = (turbo ? req.getAllHeaders() : req.headers) || {}
   let origin = headers['origin']
   if (origin) {
     if (!allowOrigins[origin]) return rejectPreflight(res, origin)
@@ -239,7 +250,7 @@ function handleRequest (req, res) {
     let connection = req.connection || {}
     req.params.ip = headers['x-forwarded-for'] || connection.remoteAddress
   }
-  req.once('error', (err) => sendErr(res, err))
+  if (!turbo) req.once('error', (err) => sendErr(res, err))
   let callHandler = () => {
     if (!hasBody[action]) return actionHandler(req, res, name, action)
     return bodyParse(req).then((body) => {
@@ -258,7 +269,7 @@ function handleRequest (req, res) {
 
 let sendCache = {}
 function sendData (res, data = null) {
-  if (res.headersSent) {
+  if (res.headersSent || res.headerSent) {
     logIt(new Error(`Can't send data after headers sent`), 'warn')
     return Promise.resolve()
   }
@@ -294,11 +305,11 @@ function sendData (res, data = null) {
 
 function sendErr (res, err, code = 500) {
   res.statusCode = code
-  if (res.headersSent) {
+  if (res.headersSent || res.headerSent) {
     logIt(err || new Error(`Can't send error after headers sent`), 'warn')
     return Promise.resolve()
   } else {
-    res.removeHeader('content-encoding')
+    if (res.removeHeader) res.removeHeader('content-encoding')
   }
   if (!err) {
     res.end(JSON.stringify({data: null, error: 'Unspecified error'}))
