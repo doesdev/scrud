@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "autocannon": "^2.0.0",
-    "express": "^4.16.2",
-    "fastify": "^1.0.0-rc.2",
+    "autocannon": "^2.1.1",
+    "express": "^4.16.3",
+    "fastify": "^1.2.0",
     "polka": "^0.3.4",
-    "tty-table": "^2.5.5"
+    "tty-table": "^2.5.9"
   }
 }
