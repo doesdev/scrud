@@ -72,15 +72,16 @@ test.serial('DELETE', async (assert) => {
   await assert.notThrows(apiCall('member', 'delete', id))
 })
 
+test.serial('missing resource id returns 404', async (assert) => {
+  let url = `http://localhost:${port}${basePath}/member/`
+  let headers = {Authorization: `Bearer ${jwt}`}
+  await assert.throws(axios({method: 'PUT', url, data: putBody, headers}))
+})
+
 test.serial('regession: body parses gracefully', async (assert) => {
   let url = `http://localhost:${port}${basePath}/member/${id}`
   let headers = {Authorization: `Bearer ${jwt}`}
   await assert.notThrows(axios({method: 'PUT', url, data: 'u', headers}))
-})
-
-test.skip('close ends pg client (not really testable)', async (assert) => {
-  let url = `http://localhost:${port}${basePath}/member?first=andrew`
-  await assert.throws(axios({method: 'GET', url, timeout: 3}))
 })
 
 test('register throws with no name', async (assert) => {
