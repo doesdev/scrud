@@ -43,7 +43,7 @@ As always, take benches with a grain of salt. The point is that we care about pe
 Node's `http` built-in is given the advantage of pre-rendered JSON, as it is the benchmark. SCRUD and Polka bounce back and forth in second position. To be clear SCRUD only handles resourceful SCRUD routes, Polka packs a more capable router which handles less standardized routes and an Express compatible middleware handler. SCRUD is focused on APIs and microservices.
 
 <div align="center">
-  <img src="https://github.com/doesdev/scrud/raw/master/assets/bench.png" alt="SCRUD" />
+  <img src="https://github.com/doesdev/scrud/raw/master/assets/bench.png" alt="SCRUD" style="box-shadow: -4px 2px 6px rgba(0,0,0,0.4);" />
 </div>
 
 
