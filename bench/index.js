@@ -5,7 +5,14 @@ const { join } = require('path')
 const { get } = require('axios')
 const autocannon = require('autocannon')
 const table = require('tty-table')
-const ports = {http: 3010, fastify: 3011, polka: 3012, scrud: 3013, express: 3014}
+const ports = {
+  http: 3010,
+  fastify: 3011,
+  polka: 3012,
+  scrud: 3013,
+  express: 3014,
+  hapi: 3015
+}
 const results = []
 const benchId = 301
 const children = {}

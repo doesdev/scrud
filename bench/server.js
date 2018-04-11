@@ -1,7 +1,14 @@
 'use strict'
 
 const { base64 } = require('./lob.json')
-const ports = {http: 3010, fastify: 3011, polka: 3012, scrud: 3013, express: 3014}
+const ports = {
+  http: 3010,
+  fastify: 3011,
+  polka: 3012,
+  scrud: 3013,
+  express: 3014,
+  hapi: 3015
+}
 const logStart = (n) => {
   process.send(n)
   let { heapUsed, heapTotal } = process.memoryUsage()
@@ -49,6 +56,16 @@ const start = {
     express().get('/bench/:id', (req, res) => {
       res.json({data: toSend, error: null})
     }).listen(ports.express, () => logStart('express'))
+  },
+  hapi: () => {
+    const { server: hapi } = require('hapi')
+    let server = hapi({host: 'localhost', port: ports.hapi})
+    server.route({
+      method: 'GET',
+      path: '/bench/{id}',
+      handler: (request, h) => { return {data: toSend, error: null} }
+    })
+    server.start().then(() => logStart('hapi'))
   }
 }
 
