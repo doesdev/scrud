@@ -45,8 +45,7 @@ const start = {
     }).listen(ports.polka).then(() => logStart('polka'))
   },
   scrud: () => {
-    const scrudOpts = {port: ports.scrud, noCache: true}
-    require('turbo-http')
+    const scrudOpts = {port: ports.scrud, noCache: true, turbo: false}
     const scrud = require('scrud')
     scrud.register('bench', {read: (req, res) => scrud.sendData(res, toSend)})
     scrud.start(scrudOpts).then(() => logStart('scrud'))
