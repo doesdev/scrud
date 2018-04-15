@@ -1,0 +1,30 @@
+{
+  "name": "scrud-realtime",
+  "version": "0.1.0",
+  "description": "SCRUD + realtime bs",
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "gopath/bin/.gitkeep",
+    "gopath/pkg/.gitkeep",
+    "gopath/src/.gitkeep"
+  ],
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/doesdev/scrud.git"
+  },
+  "author": "Andrew Carpenter (https://github.com/doesdev)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/doesdev/scrud/issues"
+  },
+  "homepage": "https://github.com/doesdev/scrud/realtime#readme",
+  "dependencies": {
+    "ngo": "^2.4.9"
+  },
+  "devDependencies": {}
+}

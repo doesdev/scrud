@@ -46,3 +46,11 @@ db.json
 _db.json
 database.json
 _database.json
+
+# Anything other than gitkeep in realtime/gopath dirs
+realtime/gopath/bin/*
+!realtime/gopath/bin/.gitkeep
+realtime/gopath/pkg/*
+!realtime/gopath/pkg/.gitkeep
+realtime/gopath/src/*
+!realtime/gopath/src/.gitkeep
