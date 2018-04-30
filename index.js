@@ -208,7 +208,7 @@ function start (opts = {}) {
   if (Array.isArray(opts.allowOrigins)) {
     opts.allowOrigins.forEach((k) => { allowOrigins[k] = true })
   }
-  let http
+  let http = require('http')
   if (opts.turbo !== false) {
     try {
       http = require('turbo-http')
