@@ -1,6 +1,6 @@
 {
   "name": "scrud",
-  "version": "4.2.4",
+  "version": "4.2.5",
   "description": "SCRUD API server, fast, light, capable",
   "engines": {
     "node": ">=6.0.0"
@@ -26,7 +26,7 @@
   "homepage": "https://github.com/doesdev/scrud#readme",
   "dependencies": {
     "jsonwebtoken": "^8.3.0",
-    "pg": "^7.5.0",
+    "pg": "7.4.3",
     "tiny-params": "^2.0.4"
   },
   "devDependencies": {
