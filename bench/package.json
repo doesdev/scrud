@@ -1,12 +1,12 @@
 {
   "dependencies": {
-    "autocannon": "^2.1.1",
+    "autocannon": "^3.0.1",
     "express": "^4.16.3",
-    "fastify": "^1.2.0",
-    "hapi": "^17.3.1",
-    "polka": "^0.3.4",
+    "fastify": "^1.12.1",
+    "hapi": "^17.6.0",
+    "polka": "^0.5.1",
     "scrud": "file:../",
-    "tty-table": "^2.5.9",
+    "tty-table": "^2.6.9",
     "turbo-http": "^0.3.0"
   }
 }

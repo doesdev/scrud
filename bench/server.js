@@ -42,7 +42,7 @@ const start = {
     polka().get('/bench/:id', (req, res) => {
       res.setHeader('Content-Type', 'application/json; charset=utf-8')
       res.end(JSON.stringify({data: toSend, error: null}))
-    }).listen(ports.polka).then(() => logStart('polka'))
+    }).listen(ports.polka, () => logStart('polka'))
   },
   scrud: () => {
     const scrudOpts = {port: ports.scrud, noCache: true, turbo: false}
