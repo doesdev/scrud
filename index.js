@@ -5,8 +5,8 @@ const tinyParams = require('tiny-params')
 const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
-const checkId = {read: true, update: true, delete: true}
-const primitives = {string: true, number: true, boolean: true}
+const checkId = { read: true, update: true, delete: true }
+const primitives = { string: true, number: true, boolean: true }
 const noop = () => {}
 const dummyRes = {
   addTrailers: noop,
@@ -31,7 +31,7 @@ const scrud = {
   'PUT/': 'update',
   'DELETE/': 'delete'
 }
-const hasBody = {create: true, update: true}
+const hasBody = { create: true, update: true }
 const wlSign = [
   'algorithm',
   'expiresIn',
@@ -100,7 +100,7 @@ const callPgFunc = (name, params, req) => {
   let q = `SELECT * FROM ${name}($1);`
   if (!pgPool) return Promise.reject(new Error('No database configured'))
   return pgPool.connect().then((client) => {
-    let close = () => { if (client && client.end) client.end().catch(() => {}) }
+    let close = () => { if (client && client.release) client.release(true) }
     if (req && req.on) req.once('close', close)
     return client.query(q, [params]).then((data) => {
       if (req && req.removeListener) req.removeListener('close', close)
@@ -177,7 +177,7 @@ module.exports = {
 function register (name, opts = {}) {
   if (!name) return Promise.reject(new Error(`No name specified in register`))
   return new Promise((resolve, reject) => {
-    let r = resources[name] = Object.assign({}, opts, {name})
+    let r = resources[name] = Object.assign({}, opts, { name })
     if (Array.isArray(r.skipAuth)) {
       let skippers = {}
       r.skipAuth.forEach((a) => { skippers[a] = true })
@@ -279,11 +279,11 @@ function sendData (res, data = null) {
   return new Promise((resolve, reject) => {
     let { out, big } = tmp
     if (!hasCache) {
-      out = JSON.stringify({data, error: null})
+      out = JSON.stringify({ data, error: null })
       let dblLen = out.length * 2 + 1
       big = !(dblLen < gzipThreshold || Buffer.byteLength(out) < gzipThreshold)
     }
-    if (canCache && !hasCache) sendCache = {data, out, big}
+    if (canCache && !hasCache) sendCache = { data, out, big }
     res.statusCode = 200
     if (!res.useGzip || !big) {
       res.end(out)
@@ -312,13 +312,13 @@ function sendErr (res, err, code = 500) {
     if (res.removeHeader) res.removeHeader('content-encoding')
   }
   if (!err) {
-    res.end(JSON.stringify({data: null, error: 'Unspecified error'}))
+    res.end(JSON.stringify({ data: null, error: 'Unspecified error' }))
     return Promise.resolve()
   }
   return new Promise((resolve, reject) => {
     logIt(err, 'fatal')
     err = err instanceof Error ? (err.message || err.name) : err.toString()
-    res.end(JSON.stringify({data: null, error: err}))
+    res.end(JSON.stringify({ data: null, error: err }))
     return resolve()
   })
 }
@@ -341,7 +341,7 @@ function ackPreflight (res, origin, allowHeaders) {
 function rejectPreflight (res, origin) {
   res.setHeader('Origin', origin || '')
   res.statusCode = 403
-  res.end(JSON.stringify({data: null, error: 'Origin not allowed'}))
+  res.end(JSON.stringify({ data: null, error: 'Origin not allowed' }))
 }
 
 function genToken (payload = {}) {
@@ -368,14 +368,14 @@ function authenticate (jwt) {
 
 // helper: handle all resource helpers
 function pgActions (resource, action, req) {
-  let {id, params} = req
+  let { id, params } = req
   if (checkId[action]) {
     if (!id && id !== 0) return Promise.reject(new Error('No id passed'))
     if (action === 'read') params.id_array = [id]
     params.id = id
   }
   let firstRecord = (d) => Promise.resolve(d[0])
-  let first = {create: true, read: true, update: true}
+  let first = { create: true, read: true, update: true }
   if (action === 'search') {
     Object.keys(params).forEach((k) => {
       if (!Array.isArray(params[k])) return
