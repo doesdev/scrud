@@ -100,9 +100,10 @@ const callPgFunc = (name, params, req) => {
   let q = `SELECT * FROM ${name}($1);`
   if (!pgPool) return Promise.reject(new Error('No database configured'))
   return pgPool.connect().then((client) => {
+    let released
     let release = (fauxErr) => {
-      if (!client || !client.release || client._scrud_released) return
-      client._scrud_released = true
+      if (!client || !client.release || released) return
+      released = true
       client.release(fauxErr)
     }
     let close = () => release(true)
