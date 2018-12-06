@@ -14,8 +14,8 @@ const postBody = {
 }
 const basePath = '/api'
 const port = 8092
-const apiOpts = {host: 'localhost', port, basePath, timeout: '10s'}
-const putBody = {zip: 37615}
+const apiOpts = { host: 'localhost', port, basePath, timeout: '10s' }
+const putBody = { zip: 37615 }
 const logger = () => {}
 const opts = {
   port,
@@ -42,8 +42,8 @@ let id, apiCall, jwt
 test.before(async () => {
   await scrud.register('member')
   await scrud.start(opts)
-  jwt = await scrud.genToken({some: 'stuffs'})
-  apiCall = getScrud(Object.assign({jwt}, apiOpts))
+  jwt = await scrud.genToken({ some: 'stuffs' })
+  apiCall = getScrud(Object.assign({ jwt }, apiOpts))
 })
 
 test.serial('CREATE', async (assert) => {
@@ -54,7 +54,7 @@ test.serial('CREATE', async (assert) => {
 })
 
 test.serial('SEARCH', async (assert) => {
-  let s = await apiCall('member', 'search', {first: 'andrew'})
+  let s = await apiCall('member', 'search', { first: 'andrew' })
   assert.true(Array.isArray(s) && s.length > 0)
 })
 
@@ -74,14 +74,14 @@ test.serial('DELETE', async (assert) => {
 
 test.serial('missing resource id returns 404', async (assert) => {
   let url = `http://localhost:${port}${basePath}/member/`
-  let headers = {Authorization: `Bearer ${jwt}`}
-  await assert.throws(axios({method: 'PUT', url, data: putBody, headers}))
+  let headers = { Authorization: `Bearer ${jwt}` }
+  await assert.throws(axios({ method: 'PUT', url, data: putBody, headers }))
 })
 
 test.serial('regession: body parses gracefully', async (assert) => {
   let url = `http://localhost:${port}${basePath}/member/${id}`
-  let headers = {Authorization: `Bearer ${jwt}`}
-  await assert.notThrows(axios({method: 'PUT', url, data: 'u', headers}))
+  let headers = { Authorization: `Bearer ${jwt}` }
+  await assert.notThrows(axios({ method: 'PUT', url, data: 'u', headers }))
 })
 
 test('register throws with no name', async (assert) => {
@@ -96,34 +96,34 @@ test('register returns resource object', async (assert) => {
 })
 
 test(`exported resource DB helpers work as expected`, async (assert) => {
-  let locId = (await scrud.insert('member', {params: {zip: 37615}})).id
-  assert.is((await scrud.findAll('member', {params: {id: locId}}))[0].zip, '37615')
-  await assert.notThrows(scrud.save('member', {id: locId, params: {zip: '37610'}}))
-  assert.is((await scrud.find('member', {id: locId, params: {}})).zip, '37610')
-  await assert.notThrows(scrud.destroy('member', {id: locId, params: {}}))
+  let locId = (await scrud.insert('member', { params: { zip: 37615 } })).id
+  assert.is((await scrud.findAll('member', { params: { id: locId } }))[0].zip, '37615')
+  await assert.notThrows(scrud.save('member', { id: locId, params: { zip: '37610' } }))
+  assert.is((await scrud.find('member', { id: locId, params: {} })).zip, '37610')
+  await assert.notThrows(scrud.destroy('member', { id: locId, params: {} }))
 })
 
 test(`exported SCRUD helpers work as expected`, async (assert) => {
-  let locId = (await scrud.create('member', {params: {zip: 37615}})).id
-  assert.is((await scrud.search('member', {params: {id: locId}}))[0].zip, '37615')
-  await assert.notThrows(scrud.update('member', {id: locId, params: {zip: 37610}}))
-  assert.is((await scrud.read('member', {id: locId, params: {}})).zip, '37610')
-  await assert.notThrows(scrud.delete('member', {id: locId, params: {}}))
+  let locId = (await scrud.create('member', { params: { zip: 37615 } })).id
+  assert.is((await scrud.search('member', { params: { id: locId } }))[0].zip, '37615')
+  await assert.notThrows(scrud.update('member', { id: locId, params: { zip: 37610 } }))
+  assert.is((await scrud.read('member', { id: locId, params: {} })).zip, '37610')
+  await assert.notThrows(scrud.delete('member', { id: locId, params: {} }))
 })
 
 test(`basePth and path edge cases are handled properly`, async (assert) => {
   let hdl = (req, res) => Promise.resolve(sendData(res, 'test'))
-  let handlers = {search: hdl, create: hdl, read: hdl, update: hdl, delete: hdl}
+  let handlers = { search: hdl, create: hdl, read: hdl, update: hdl, delete: hdl }
   await scrud.register('api', handlers)
-  let headers = {Authorization: `Bearer ${jwt}`}
+  let headers = { Authorization: `Bearer ${jwt}` }
   let res
-  res = await axios(`http://localhost:${port}${basePath}/api/1`, {headers})
+  res = await axios(`http://localhost:${port}${basePath}/api/1`, { headers })
   assert.is(res.headers.scrud, 'api:read')
-  res = await axios(`http://localhost:${port}${basePath}/api/1?j=2`, {headers})
+  res = await axios(`http://localhost:${port}${basePath}/api/1?j=2`, { headers })
   assert.is(res.headers.scrud, 'api:read')
-  res = await axios(`http://localhost:${port}${basePath}/api/ `, {headers})
+  res = await axios(`http://localhost:${port}${basePath}/api/ `, { headers })
   assert.is(res.headers.scrud, 'api:search')
   let enc = encodeURIComponent(`?a=b&c[]=._*j&d=1/1/18&e=f?k`)
-  res = await axios(`http://localhost:${port}${basePath}/api${enc} `, {headers})
+  res = await axios(`http://localhost:${port}${basePath}/api${enc} `, { headers })
   assert.is(res.headers.scrud, 'api:search')
 })
