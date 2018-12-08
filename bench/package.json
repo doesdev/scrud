@@ -1,9 +1,10 @@
 {
+  "main": "index.js",
   "dependencies": {
-    "autocannon": "^3.0.1",
-    "express": "^4.16.3",
-    "fastify": "^1.12.1",
-    "hapi": "^17.6.0",
+    "autocannon": "^3.2.0",
+    "express": "^4.16.4",
+    "fastify": "^1.13.1",
+    "hapi": "^17.8.1",
     "polka": "^0.5.1",
     "scrud": "file:../",
     "tty-table": "^2.6.9",
