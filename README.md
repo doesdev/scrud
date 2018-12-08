@@ -19,7 +19,7 @@ Every resource has corresponding SCRUD actions which are expressed in the HTTP m
 
 # what is this module
 
-- a blazing fast API server
+- a performance minded API server
 - a resourceful SCRUD based router
 - a collection of tools that allow you to stand up APIs rapidly
 - opinionated
