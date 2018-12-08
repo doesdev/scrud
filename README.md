@@ -34,18 +34,15 @@ Every resource has corresponding SCRUD actions which are expressed in the HTTP m
 
 # is it fast
 
-Glad you asked. Yes, it is.
+It is competitively fast. It's neither the fastest thing out there or the slowest, but it strives to be competitive with the fastest of the bunch.
 
 # benchmarks
 
 As always, take benches with a grain of salt. The point is that we care about performance and optimize for it. To see benchmarking details check out the bench directory. The gist is this, all libs return a simple JSON response and the proper content-type headers. Each server is run in their own forked process and gets a warm up run for 3 seconds before we start tracking the results.
 
-Node's `http` built-in is given the advantage of pre-rendered JSON, as it is the benchmark. SCRUD and Polka bounce back and forth in second position. To be clear SCRUD only handles resourceful SCRUD routes, Polka packs a more capable router which handles less standardized routes and an Express compatible middleware handler. SCRUD is focused on APIs and microservices.
+Node's `http` built-in is given the advantage of pre-rendered JSON, as it is the benchmark.
 
-<div align="center" style="box-shadow: -4px 2px 6px rgba(0,0,0,0.4);">
-  <img src="https://github.com/doesdev/scrud/raw/master/assets/bench.png" alt="SCRUD" />
-</div>
-
+![Benchmark](bench/results.png)
 
 # install
 

@@ -2,9 +2,12 @@
 
 const { fork } = require('child_process')
 const { join } = require('path')
+const { writeFileSync } = require('fs')
 const { get } = require('axios')
 const autocannon = require('autocannon')
 const table = require('tty-table')
+const warmupSec = 1
+const runSec = 1
 const ports = {
   http: 3010,
   fastify: 3011,
@@ -85,8 +88,8 @@ const bencher = (title) => new Promise((resolve, reject) => {
     pipelining: lob ? 1 : 10,
     headers: { 'accept-encoding': 'gzip, deflate, br' }
   }
-  autocannon(Object.assign({ duration: 3 }, acOpts), () => {
-    autocannon(Object.assign({ duration: 7 }, acOpts), done)
+  autocannon(Object.assign({ duration: warmupSec }, acOpts), () => {
+    autocannon(Object.assign({ duration: runSec }, acOpts), done)
   })
 })
 
@@ -147,6 +150,28 @@ async function bench () {
     memory[r.title].end.split('/').map(formatBytes).join('\n')
   ])
 
-  console.log(table(head, rows).render())
+  const consoleOut = table(head, rows).render()
+  console.log(consoleOut)
+
+  const borderCharacters = [
+    [
+      { v: ' ', l: ' ', j: ' ', h: ' ', r: ' ' },
+      { v: ' ', l: ' ', j: ' ', h: ' ', r: ' ' },
+      { v: ' ', l: ' ', j: ' ', h: ' ', r: ' ' }
+    ],
+    [
+      { v: '|', l: '+', j: '+', h: '-', r: '+' },
+      { v: '|', l: '+', j: '+', h: '-', r: '+' },
+      { v: '|', l: '+', j: '+', h: '-', r: '+' }
+    ],
+    [
+      { v: '|', l: '+', j: '+', h: '-', r: '+' },
+      { v: '|', l: '+', j: '+', h: '-', r: '+' },
+      { v: '|', l: '+', j: '+', h: '-', r: '+' }
+    ]
+  ]
+  const headerColor = null
+  const fileOut = table(head, rows, { borderCharacters, headerColor }).render()
+  writeFileSync('results.txt', fileOut, 'utf8')
   process.exit()
 }

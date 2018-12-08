@@ -1,0 +1,22 @@
+{
+  "bench": {
+    "bg": "rgba(71,72,73,1)",
+    "t": "dracula",
+    "wt": "none",
+    "l": "auto",
+    "ds": "true",
+    "dsyoff": "20px",
+    "dsblur": "68px",
+    "wc": "true",
+    "wa": "true",
+    "pv": "48px",
+    "ph": "32px",
+    "ln": "false",
+    "fm": "Hack",
+    "fs": "14px",
+    "lh": "133%",
+    "si": "false",
+    "es": "2x",
+    "wm": "false"
+  }
+}
