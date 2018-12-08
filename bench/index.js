@@ -6,8 +6,8 @@ const { writeFileSync } = require('fs')
 const { get } = require('axios')
 const autocannon = require('autocannon')
 const table = require('tty-table')
-const warmupSec = 1
-const runSec = 1
+const warmupSec = 3
+const runSec = 7
 const ports = {
   http: 3010,
   fastify: 3011,
