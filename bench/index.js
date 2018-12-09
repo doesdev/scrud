@@ -7,6 +7,7 @@ const { get } = require('axios')
 const autocannon = require('autocannon')
 const table = require('tty-table')
 const writeToFile = process.argv.some((a) => a === '--render')
+const lob = process.argv.some((a) => a === '--lob')
 const warmupSec = 3
 const runSec = 7
 const ports = {
@@ -21,8 +22,6 @@ const results = []
 const benchId = 301
 const children = {}
 const memory = {}
-
-const lob = process.argv[2] === '--lob' || process.argv[2] === 'lob'
 
 Promise.all(Object.keys(ports).map((k) => new Promise((resolve, reject) => {
   const child = children[k] = fork(join(__dirname, 'server'), [k, lob ? 'lob' : ''])
@@ -85,9 +84,9 @@ const bencher = (title) => new Promise((resolve, reject) => {
   const acOpts = {
     url: urlTemplate(port, true),
     title,
+    // headers: { 'accept-encoding': 'gzip, deflate, br' },
     connections: lob ? 10 : 50,
-    pipelining: lob ? 1 : 10,
-    headers: { 'accept-encoding': 'gzip, deflate, br' }
+    pipelining: lob ? 1 : 10
   }
   autocannon(Object.assign({ duration: warmupSec }, acOpts), () => {
     autocannon(Object.assign({ duration: runSec }, acOpts), done)

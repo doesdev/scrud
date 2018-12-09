@@ -7,7 +7,6 @@ const Lru = require('quick-lru')
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
 const checkId = { read: true, update: true, delete: true }
-const primitives = { string: true, number: true, boolean: true }
 const noop = () => {}
 const dummyRes = {
   addTrailers: noop,
@@ -63,7 +62,6 @@ let allowOrigins = {}
 let gzipThreshold = 1000
 let getIp
 let setScrudHeader
-let noCache
 let turbo
 
 // local helpers
@@ -209,7 +207,6 @@ function start (opts = {}) {
     baseChars = base.length
   }
   if (opts.getIp) getIp = true
-  if (opts.noCache) noCache = true
   if (opts.setScrudHeader) setScrudHeader = true
   if (opts.authTrans) authTrans = opts.authTrans
   if (opts.gzipThreshold) gzipThreshold = opts.gzipThreshold
@@ -275,36 +272,23 @@ function handleRequest (req, res) {
   }).catch((err) => fourOhOne(res, err))
 }
 
-let sendCache = {}
 function sendData (res, data = null) {
   if (res.headersSent || res.headerSent) {
     logIt(new Error(`Can't send data after headers sent`), 'warn')
     return Promise.resolve()
   }
-  let tmp = sendCache
-  let canCache = !noCache && (!data || primitives[typeof data])
-  let hasCache = canCache && data === tmp.data
   return new Promise((resolve, reject) => {
-    let { out, big } = tmp
-    if (!hasCache) {
-      out = JSON.stringify({ data, error: null })
-      let dblLen = out.length * 2 + 1
-      big = !(dblLen < gzipThreshold || Buffer.byteLength(out) < gzipThreshold)
-    }
-    if (canCache && !hasCache) sendCache = { data, out, big }
+    const out = JSON.stringify({ data, error: null })
+    const dblLen = out.length * 2 + 1
+    const big = !(dblLen < gzipThreshold || Buffer.byteLength(out) < gzipThreshold)
     res.statusCode = 200
     if (!res.useGzip || !big) {
       res.end(out)
       return resolve()
     }
     res.setHeader('Content-Encoding', 'gzip')
-    if (tmp.gzip) {
-      res.end(tmp.gzip)
-      return resolve()
-    }
     zlib.gzip(Buffer.from(out), (err, zipd) => {
       if (err) return reject(sendErr(res, err))
-      if (canCache && !hasCache) sendCache.gzip = zipd
       res.end(zipd)
       return resolve()
     })
