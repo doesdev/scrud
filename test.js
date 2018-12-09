@@ -24,6 +24,7 @@ const opts = {
   allowOrigins,
   logger,
   setScrudHeader: true,
+  turbo: false,
   jsonwebtoken: {
     secret: `SomeRandomAstString`,
     algorithm: `HS256`,

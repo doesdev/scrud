@@ -3,6 +3,7 @@
 // setup
 const tinyParams = require('tiny-params')
 const zlib = require('zlib')
+const Lru = require('quick-lru')
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
 const checkId = { read: true, update: true, delete: true }
@@ -44,6 +45,9 @@ const wlSign = [
   'header'
 ]
 
+// LRU cache
+const urlCache = new Lru({ maxSize: 20 })
+
 // globals
 let jsonwebtoken
 let logger
@@ -67,11 +71,9 @@ const logIt = (e, level = 'fatal') => {
   typeof logger === 'function' ? logger(e, level) : console.log(e)
 }
 
-let lastParsed = {}
 const parseUrl = (req) => {
-  let tmp = lastParsed
-  let sig = `${req.method}${req.url}`
-  if (tmp.sig === sig) return tmp.data
+  const sig = `${req.method}${req.url}`
+  if (urlCache.has(sig)) return urlCache.get(sig)
   let url = decodeURIComponent(req.url).slice(baseChars)
   let sIdx = url.indexOf('/')
   let qIdx = url.indexOf('?')
@@ -92,7 +94,7 @@ const parseUrl = (req) => {
   let action = scrud[`${req.method}${modifier}`]
   let params = tinyParams(url)
   let data = { url, name, action, id, params }
-  lastParsed = { sig, data }
+  urlCache.set(sig, data)
   return data
 }
 

@@ -54,7 +54,7 @@ start.polka = () => {
 }
 
 start.scrud = () => {
-  const scrudOpts = { port: ports.scrud }
+  const scrudOpts = { port: ports.scrud, turbo: false }
   const scrud = require('scrud')
   scrud.register('bench', { read: (req, res) => scrud.sendData(res, toSend) })
   scrud.start(scrudOpts).then(() => logStart('scrud'))

@@ -6,6 +6,7 @@ const { writeFileSync } = require('fs')
 const { get } = require('axios')
 const autocannon = require('autocannon')
 const table = require('tty-table')
+const writeToFile = process.argv.some((a) => a === '--render')
 const warmupSec = 3
 const runSec = 7
 const ports = {
@@ -152,6 +153,7 @@ async function bench () {
 
   const consoleOut = table(head, rows).render()
   console.log(consoleOut)
+  if (!writeToFile) return process.exit()
 
   const borderCharacters = [
     [

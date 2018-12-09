@@ -1,7 +1,7 @@
 {
   "main": "index.js",
   "scripts": {
-    "render": "node index && carbon-now results.txt --config .carbon.json -p bench -h -t results"
+    "render": "node index --render && carbon-now results.txt --config .carbon.json -p bench -h -t results"
   },
   "dependencies": {
     "autocannon": "^3.2.0",
