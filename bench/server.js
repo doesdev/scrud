@@ -1,6 +1,11 @@
 'use strict'
 
-const { base64 } = require('./lob.json')
+const { base64 } = require('./data.json')
+const [framework, lobFlag, postFlag] = process.argv.slice(2)
+const lob = lobFlag && lobFlag !== 'false'
+const post = postFlag && postFlag !== 'false'
+const start = {}
+const toSend = lob ? base64 : 301
 const ports = {
   http: 3010,
   fastify: 3011,
@@ -23,48 +28,72 @@ process.on('message', (m) => {
   }
 })
 
-const toSend = process.argv[3] === 'lob' ? base64 : 301
-
-const preRendered = JSON.stringify({ data: toSend, error: null })
-
-const start = {}
-
 start.http = () => {
   const http = require('http')
   http.createServer((req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
-    res.end(preRendered)
+    if (!post) return res.end(JSON.stringify({ data: toSend, error: null }))
+    let body = ''
+    req.on('data', (chunk) => { body += chunk })
+    req.on('end', () => {
+      const b64 = JSON.parse(body).user
+      return res.end(JSON.stringify({ data: b64, error: null }))
+    })
   }).listen(ports.http, () => logStart('http'))
 }
 
 start.fastify = () => {
   const fastify = require('fastify')()
-  fastify.get('/bench/:id', function (req, reply) {
+  fastify.get('/user/:id', function (req, reply) {
     reply.send({ data: toSend, error: null })
   })
+  if (post) {
+    fastify.post('/user', function (req, reply) {
+      reply.send({ data: req.body.user, error: null })
+    })
+  }
   fastify.listen(ports.fastify, () => logStart('fastify'))
 }
 
 start.polka = () => {
-  const polka = require('polka')
-  polka().get('/bench/:id', (req, res) => {
+  const polka = require('polka')()
+  polka.get('/user/:id', (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
     res.end(JSON.stringify({ data: toSend, error: null }))
-  }).listen(ports.polka, () => logStart('polka'))
+  })
+  if (post) {
+    polka.use(require('body-parser').json())
+    polka.post('/user', (req, res) => {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8')
+      res.end(JSON.stringify({ data: req.body.user, error: null }))
+    })
+  }
+  polka.listen(ports.polka, () => logStart('polka'))
 }
 
 start.scrud = () => {
   const scrudOpts = { port: ports.scrud, turbo: false }
   const scrud = require('scrud')
-  scrud.register('bench', { read: (req, res) => scrud.sendData(res, toSend) })
+  scrud.register('user', {
+    create: (req, res) => scrud.sendData(res, req.params.user),
+    read: (req, res) => scrud.sendData(res, toSend)
+  })
   scrud.start(scrudOpts).then(() => logStart('scrud'))
 }
 
 start.express = () => {
-  const express = require('express')
-  express().get('/bench/:id', (req, res) => {
+  const express = require('express')()
+  express.get('/user/:id', (req, res) => {
     res.json({ data: toSend, error: null })
-  }).listen(ports.express, () => logStart('express'))
+  })
+  if (post) {
+    express.use(require('body-parser').json())
+    express.post('/user', (req, res) => {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8')
+      res.end(JSON.stringify({ data: req.body.user, error: null }))
+    })
+  }
+  express.listen(ports.express, () => logStart('express'))
 }
 
 start.hapi = () => {
@@ -72,10 +101,19 @@ start.hapi = () => {
   const server = hapi({ host: 'localhost', port: ports.hapi })
   server.route({
     method: 'GET',
-    path: '/bench/{id}',
-    handler: (request, h) => { return { data: toSend, error: null } }
+    path: '/user/{id}',
+    handler: (req, h) => { return { data: toSend, error: null } }
   })
+  if (post) {
+    server.route({
+      method: 'POST',
+      path: '/user',
+      handler: (req, h) => { return { data: req.payload.user, error: null } }
+    })
+  }
   server.start().then(() => logStart('hapi'))
 }
 
-start[process.argv[2]]()
+if (typeof start[framework] === 'function') start[framework]()
+
+module.exports = { ports }

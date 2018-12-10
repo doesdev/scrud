@@ -3,28 +3,24 @@
 const { fork } = require('child_process')
 const { join } = require('path')
 const { writeFileSync } = require('fs')
-const { get } = require('axios')
+const axios = require('axios')
 const autocannon = require('autocannon')
 const table = require('tty-table')
+const { user } = require('./data.json')
 const writeToFile = process.argv.some((a) => a === '--render')
-const lob = process.argv.some((a) => a === '--lob')
+const post = process.argv.some((a) => a === '--post')
+const lob = !post && process.argv.some((a) => a === '--lob')
 const warmupSec = 3
 const runSec = 7
-const ports = {
-  http: 3010,
-  fastify: 3011,
-  polka: 3012,
-  scrud: 3013,
-  express: 3014,
-  hapi: 3015
-}
+const { ports } = require('./server')
 const results = []
 const benchId = 301
 const children = {}
 const memory = {}
 
 Promise.all(Object.keys(ports).map((k) => new Promise((resolve, reject) => {
-  const child = children[k] = fork(join(__dirname, 'server'), [k, lob ? 'lob' : ''])
+  const childArgv = [k, lob, post]
+  const child = children[k] = fork(join(__dirname, 'server'), childArgv)
   child.once('error', (err) => {
     console.log(err)
     process.exit()
@@ -49,7 +45,8 @@ Promise.all(Object.keys(ports).map((k) => new Promise((resolve, reject) => {
 }))).then(() => bench())
 
 const urlTemplate = (port, string) => {
-  const url = { host: 'localhost', port, path: `/bench/${benchId}` }
+  const path = post ? `/user` : `/user/${benchId}`
+  const url = { host: 'localhost', port, path }
   return string ? `http://${url.host}:${url.port}${url.path}` : url
 }
 
@@ -82,11 +79,12 @@ const bencher = (title) => new Promise((resolve, reject) => {
     return resolve(title)
   }
   const acOpts = {
-    url: urlTemplate(port, true),
     title,
-    // headers: { 'accept-encoding': 'gzip, deflate, br' },
-    connections: lob ? 10 : 50,
-    pipelining: lob ? 1 : 10
+    url: urlTemplate(port, true),
+    body: post ? JSON.stringify({ user }) : undefined,
+    method: post ? 'POST' : 'GET',
+    connections: lob || post ? 10 : 50,
+    pipelining: lob || post ? 1 : 10
   }
   autocannon(Object.assign({ duration: warmupSec }, acOpts), () => {
     autocannon(Object.assign({ duration: runSec }, acOpts), done)
@@ -96,7 +94,12 @@ const bencher = (title) => new Promise((resolve, reject) => {
 let last = {}
 const checkConsistency = async (name) => {
   const port = ports[name]
-  let { data, headers } = await get(urlTemplate(port, true))
+  const clientOpts = {
+    url: urlTemplate(port, true),
+    method: post ? 'POST' : 'GET',
+    data: post ? { user } : undefined
+  }
+  let { data, headers } = await axios(clientOpts)
   const isJSON = headers['content-type'].indexOf('application/json') !== -1
   data = `${JSON.stringify(data)}-isJson:${isJSON}`
 
@@ -173,6 +176,7 @@ async function bench () {
   ]
   const headerColor = null
   const fileOut = table(head, rows, { borderCharacters, headerColor }).render()
-  writeFileSync('results.txt', fileOut, 'utf8')
+  const name = post ? 'create' : (lob ? 'lob' : 'read')
+  writeFileSync(`results/${name}.txt`, fileOut, 'utf8')
   process.exit()
 }
