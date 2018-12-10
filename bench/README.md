@@ -1,5 +1,18 @@
 # Benchmarks
 
+The benchmarks here try to be as fair and even handed as possible. Benchmarks
+do not tell the full story on performance, so please don't make decisions on
+what to use based solely on benchmarks.
+
+That being said, we benchmark because we care about performance. While it isn't
+the full picture it does matter when you are trying to ensure performance is
+up to par.
+
+Typically when I run the benches HTTP, SCRUD, Polka, and Fastify all bounce
+around at the top. SCRUD is typically more consistently at the top in the
+CREATE test however. That is a reflection of the focus on APIs rather than
+being an all purpose server.
+
 ## Methodology
 
 All libs return a simple JSON response and the proper content-type headers.
