@@ -12,7 +12,7 @@
   "scripts": {
     "test": "ava --verbose",
     "precommit": "ava",
-    "changelog": "auto-changelog -u -l 50 && git add CHANGELOG.md"
+    "changelog": "auto-changelog --commit-limit false && git add CHANGELOG.md"
   },
   "repository": {
     "type": "git",
