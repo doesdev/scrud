@@ -336,23 +336,25 @@ function rejectPreflight (res, origin) {
   res.end(JSON.stringify({ data: null, error: 'Origin not allowed' }))
 }
 
-function genToken (payload = {}) {
-  let key = jwtOpts.secret || jwtOpts.privateKey
+function genToken (payload = {}, opts) {
+  opts = opts ? Object.assign({}, jwtOpts, opts) : jwtOpts
+  let key = opts.secret || opts.privateKey
   let noOpts = () => new Error('Missing required jsonwebtoken opts')
-  if (!jwtOpts || !key) return Promise.reject(noOpts())
-  let opts = filterObj(jwtOpts, wlSign)
+  if (!opts || !key) return Promise.reject(noOpts())
+  let signOpts = filterObj(opts, wlSign)
   return new Promise((resolve, reject) => {
-    jsonwebtoken.sign(payload, key, opts, (err, token) => {
+    jsonwebtoken.sign(payload, key, signOpts, (err, token) => {
       return err ? reject(err) : resolve(token)
     })
   })
 }
 
-function authenticate (jwt) {
-  let key = (jwtOpts || {}).secret || (jwtOpts || {}).publicKey
-  if (!jwtOpts || !key) return Promise.resolve()
+function authenticate (jwt, opts) {
+  opts = opts ? Object.assign({}, jwtOpts, opts) : jwtOpts
+  let key = (opts || {}).secret || (opts || {}).publicKey
+  if (!opts || !key) return Promise.resolve()
   return new Promise((resolve, reject) => {
-    jsonwebtoken.verify(jwt, key, jwtOpts, (err, d = {}) => {
+    jsonwebtoken.verify(jwt, key, opts, (err, d = {}) => {
       return err ? reject(err) : resolve(d)
     })
   })
