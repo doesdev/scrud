@@ -70,23 +70,23 @@ test.serial('UPDATE', async (assert) => {
 })
 
 test.serial('DELETE', async (assert) => {
-  await assert.notThrows(apiCall('member', 'delete', id))
+  await assert.notThrowsAsync(apiCall('member', 'delete', id))
 })
 
 test.serial('missing resource id returns 404', async (assert) => {
   let url = `http://localhost:${port}${basePath}/member/`
   let headers = { Authorization: `Bearer ${jwt}` }
-  await assert.throws(axios({ method: 'PUT', url, data: putBody, headers }))
+  await assert.throwsAsync(axios({ method: 'PUT', url, data: putBody, headers }))
 })
 
 test.serial('regession: body parses gracefully', async (assert) => {
   let url = `http://localhost:${port}${basePath}/member/${id}`
   let headers = { Authorization: `Bearer ${jwt}` }
-  await assert.notThrows(axios({ method: 'PUT', url, data: 'u', headers }))
+  await assert.notThrowsAsync(axios({ method: 'PUT', url, data: 'u', headers }))
 })
 
 test('register throws with no name', async (assert) => {
-  await assert.throws(scrud.register(), Error, 'register throws with no name')
+  await assert.throwsAsync(scrud.register(), Error, 'register throws with no name')
 })
 
 test('register returns resource object', async (assert) => {
@@ -99,17 +99,17 @@ test('register returns resource object', async (assert) => {
 test(`exported resource DB helpers work as expected`, async (assert) => {
   let locId = (await scrud.insert('member', { params: { zip: 37615 } })).id
   assert.is((await scrud.findAll('member', { params: { id: locId } }))[0].zip, '37615')
-  await assert.notThrows(scrud.save('member', { id: locId, params: { zip: '37610' } }))
+  await assert.notThrowsAsync(scrud.save('member', { id: locId, params: { zip: '37610' } }))
   assert.is((await scrud.find('member', { id: locId, params: {} })).zip, '37610')
-  await assert.notThrows(scrud.destroy('member', { id: locId, params: {} }))
+  await assert.notThrowsAsync(scrud.destroy('member', { id: locId, params: {} }))
 })
 
 test(`exported SCRUD helpers work as expected`, async (assert) => {
   let locId = (await scrud.create('member', { params: { zip: 37615 } })).id
   assert.is((await scrud.search('member', { params: { id: locId } }))[0].zip, '37615')
-  await assert.notThrows(scrud.update('member', { id: locId, params: { zip: 37610 } }))
+  await assert.notThrowsAsync(scrud.update('member', { id: locId, params: { zip: 37610 } }))
   assert.is((await scrud.read('member', { id: locId, params: {} })).zip, '37610')
-  await assert.notThrows(scrud.delete('member', { id: locId, params: {} }))
+  await assert.notThrowsAsync(scrud.delete('member', { id: locId, params: {} }))
 })
 
 test(`basePth and path edge cases are handled properly`, async (assert) => {

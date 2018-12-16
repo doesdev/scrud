@@ -7,6 +7,8 @@ const Lru = require('quick-lru')
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
 const checkId = { read: true, update: true, delete: true }
+const useFirstRecord = { create: true, read: true, update: true }
+const firstRecord = (d) => Promise.resolve(d[0])
 const noop = () => {}
 const dummyRes = {
   addTrailers: noop,
@@ -72,42 +74,48 @@ const logIt = (e, level = 'fatal') => {
 const parseUrl = (req) => {
   const sig = `${req.method}${req.url}`
   if (urlCache.has(sig)) return urlCache.get(sig)
-  let url = decodeURIComponent(req.url).slice(baseChars)
-  let sIdx = url.indexOf('/')
-  let qIdx = url.indexOf('?')
-  let modIdx = (sIdx === -1 || (qIdx !== -1 && sIdx > qIdx)) ? qIdx : sIdx
-  let lastIdx = url.length - 1
+  const url = decodeURIComponent(req.url).slice(baseChars)
+  const sIdx = url.indexOf('/')
+  const qIdx = url.indexOf('?')
+  const modIdx = (sIdx === -1 || (qIdx !== -1 && sIdx > qIdx)) ? qIdx : sIdx
+  const lastIdx = url.length - 1
+
   let id
   if (sIdx === modIdx) {
-    let postMod = url.slice(sIdx + 1)
+    const postMod = url.slice(sIdx + 1)
     if (postMod) {
       let nextMod = postMod.indexOf('/')
       if (nextMod === -1) nextMod = postMod.indexOf('?')
       id = nextMod === -1 ? postMod : postMod.slice(0, nextMod)
     }
   }
-  let noMod = modIdx === -1
-  let name = noMod ? url : url.slice(0, modIdx)
-  let modifier = noMod || modIdx === lastIdx ? '' : url.charAt(modIdx)
-  let action = scrud[`${req.method}${modifier}`]
-  let params = tinyParams(url)
-  let data = { url, name, action, id, params }
+
+  const noMod = modIdx === -1
+  const name = noMod ? url : url.slice(0, modIdx)
+  const modifier = noMod || modIdx === lastIdx ? '' : url.charAt(modIdx)
+  const action = scrud[`${req.method}${modifier}`]
+  const params = tinyParams(url)
+  const data = { url, name, action, id, params }
+
   urlCache.set(sig, data)
   return data
 }
 
 const callPgFunc = (name, params, req) => {
-  let q = `SELECT * FROM ${name}($1);`
+  const q = `SELECT * FROM ${name}($1);`
   if (!pgPool) return Promise.reject(new Error('No database configured'))
+
   return pgPool.connect().then((client) => {
     let released
-    let release = (fauxErr) => {
+    const release = (fauxErr) => {
       if (!client || !client.release || released) return
       released = true
       client.release(fauxErr)
     }
-    let close = () => release(true)
-    if (req && req.on) req.once('close', close)
+
+    const close = () => release(true)
+    if (req && req.once) req.once('close', close)
+
     return client.query(q, [params]).then((data) => {
       if (req && req.removeListener) req.removeListener('close', close)
       release()
@@ -130,19 +138,19 @@ const callPgFunc = (name, params, req) => {
 
 const bodyParse = (req) => new Promise((resolve, reject) => {
   let body = ''
-  let ondata = (d) => {
+  const ondata = (d) => {
     body += d.toString()
     if (body.length > maxBodyBytes) return reject(new Error('Body too large'))
   }
   turbo ? (req.ondata = ondata) : req.on('data', ondata)
-  let parse = () => {
+  const parse = () => {
     try { resolve(body ? JSON.parse(body) : {}) } catch (ex) { resolve({}) }
   }
   turbo ? (req.onend = parse) : req.on('end', parse)
 })
 
 const filterObj = (obj, ary) => {
-  let base = {}
+  const base = {}
   ary.forEach((o) => { if (o in obj) base[o] = obj[o] })
   return base
 }
@@ -183,9 +191,9 @@ module.exports = {
 function register (name, opts = {}) {
   if (!name) return Promise.reject(new Error(`No name specified in register`))
   return new Promise((resolve, reject) => {
-    let r = resources[name] = Object.assign({}, opts, { name })
+    const r = resources[name] = Object.assign({}, opts, { name })
     if (Array.isArray(r.skipAuth)) {
-      let skippers = {}
+      const skippers = {}
       r.skipAuth.forEach((a) => { skippers[a] = true })
       r.skipAuth = skippers
     }
@@ -213,6 +221,7 @@ function start (opts = {}) {
   if (Array.isArray(opts.allowOrigins)) {
     opts.allowOrigins.forEach((k) => { allowOrigins[k] = true })
   }
+
   let http = require('http')
   if (opts.turbo !== false) {
     try {
@@ -223,8 +232,9 @@ function start (opts = {}) {
       turbo = false
     }
   }
+
   return new Promise((resolve, reject) => {
-    let server = http.createServer(handleRequest)
+    const server = http.createServer(handleRequest)
     if (server.setTimeout) server.setTimeout(opts.timeout || defaultTimeout)
     server.listen(opts.port || port)
     if (opts.postgres) pgPool = new (require('pg')).Pool(opts.postgres)
@@ -235,8 +245,9 @@ function start (opts = {}) {
 // request handler
 function handleRequest (req, res) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
-  let headers = (turbo ? req.getAllHeaders() : req.headers) || {}
-  let origin = headers['origin']
+  const headers = (turbo ? req.getAllHeaders() : req.headers) || {}
+
+  const origin = headers['origin']
   if (origin) {
     if (!allowOrigins[origin]) return rejectPreflight(res, origin)
     res.setHeader('Access-Control-Allow-Origin', origin)
@@ -244,9 +255,11 @@ function handleRequest (req, res) {
   if (req.method === 'OPTIONS' && headers['access-control-request-method']) {
     return ackPreflight(res, origin, headers['access-control-request-headers'])
   }
-  let { name, action, id, params } = parseUrl(req)
-  let resource = resources[name]
+
+  const { name, action, id, params } = parseUrl(req)
+  const resource = resources[name]
   if (!resource || !action) return fourOhFour(res)
+
   res.useGzip = (headers['accept-encoding'] || '').indexOf('gzip') !== -1
   if (setScrudHeader) res.setHeader('SCRUD', `${name}:${action}`)
   if (checkId[action]) req.id = id
@@ -256,16 +269,19 @@ function handleRequest (req, res) {
     req.params.ip = headers['x-forwarded-for'] || connection.remoteAddress
   }
   if (!turbo) req.once('error', (err) => sendErr(res, err))
-  let callHandler = () => {
+
+  const callHandler = () => {
     if (!hasBody[action]) return actionHandler(req, res, name, action)
     return bodyParse(req).then((body) => {
       req.params = Object.assign(body, req.params)
       return actionHandler(req, res, name, action)
     }).catch((e) => sendErr(res, e))
   }
-  let noAuth = !jwtOpts || (resource.skipAuth && resource.skipAuth[action])
+
+  const noAuth = !jwtOpts || (resource.skipAuth && resource.skipAuth[action])
   if (noAuth) return callHandler()
-  let jwt = (headers.authorization || '').replace(/^Bearer\s/, '')
+
+  const jwt = (headers.authorization || '').replace(/^Bearer\s/, '')
   authenticate(jwt).then((authData) => {
     req.auth = req.params.auth = authTrans ? authTrans(authData) : authData
     return callHandler()
@@ -277,15 +293,17 @@ function sendData (res, data = null) {
     logIt(new Error(`Can't send data after headers sent`), 'warn')
     return Promise.resolve()
   }
+
+  res.statusCode = 200
   return new Promise((resolve, reject) => {
     const out = JSON.stringify({ data, error: null })
-    const dblLen = out.length * 2 + 1
+    const dblLen = (out.length * 2) + 1
     const big = !(dblLen < gzipThreshold || Buffer.byteLength(out) < gzipThreshold)
-    res.statusCode = 200
     if (!res.useGzip || !big) {
       res.end(out)
       return resolve()
     }
+
     res.setHeader('Content-Encoding', 'gzip')
     zlib.gzip(Buffer.from(out), (err, zipd) => {
       if (err) return reject(sendErr(res, err))
@@ -303,10 +321,12 @@ function sendErr (res, err, code = 500) {
   } else {
     if (res.removeHeader) res.removeHeader('content-encoding')
   }
+
   if (!err) {
     res.end(JSON.stringify({ data: null, error: 'Unspecified error' }))
     return Promise.resolve()
   }
+
   return new Promise((resolve, reject) => {
     logIt(err, 'fatal')
     err = err instanceof Error ? (err.message || err.name) : err.toString()
@@ -338,10 +358,11 @@ function rejectPreflight (res, origin) {
 
 function genToken (payload = {}, opts) {
   opts = opts ? Object.assign({}, jwtOpts, opts) : jwtOpts
-  let key = opts.secret || opts.privateKey
-  let noOpts = () => new Error('Missing required jsonwebtoken opts')
+  const key = opts.secret || opts.privateKey
+  const noOpts = () => new Error('Missing required jsonwebtoken opts')
   if (!opts || !key) return Promise.reject(noOpts())
-  let signOpts = filterObj(opts, wlSign)
+
+  const signOpts = filterObj(opts, wlSign)
   return new Promise((resolve, reject) => {
     jsonwebtoken.sign(payload, key, signOpts, (err, token) => {
       return err ? reject(err) : resolve(token)
@@ -351,8 +372,9 @@ function genToken (payload = {}, opts) {
 
 function authenticate (jwt, opts) {
   opts = opts ? Object.assign({}, jwtOpts, opts) : jwtOpts
-  let key = (opts || {}).secret || (opts || {}).publicKey
+  const key = (opts || {}).secret || (opts || {}).publicKey
   if (!opts || !key) return Promise.resolve()
+
   return new Promise((resolve, reject) => {
     jsonwebtoken.verify(jwt, key, opts, (err, d = {}) => {
       return err ? reject(err) : resolve(d)
@@ -362,40 +384,48 @@ function authenticate (jwt, opts) {
 
 // helper: handle all resource helpers
 function pgActions (resource, action, req) {
-  let { id, params } = req
+  const { id, params } = req
   if (checkId[action]) {
     if (!id && id !== 0) return Promise.reject(new Error('No id passed'))
     if (action === 'read') params.id_array = [id]
     params.id = id
   }
-  let firstRecord = (d) => Promise.resolve(d[0])
-  let first = { create: true, read: true, update: true }
+
   if (action === 'search') {
     Object.keys(params).forEach((k) => {
       if (!Array.isArray(params[k])) return
       params[`${k}_array`] = params[k]
     })
   }
-  let funcName = `${pgPrefix}${resource}_${action}`
-  if (!first[action]) return callPgFunc(funcName, params, req)
+
+  const funcName = `${pgPrefix}${resource}_${action}`
+  if (!useFirstRecord[action]) return callPgFunc(funcName, params, req)
   return callPgFunc(funcName, params, req).then(firstRecord)
 }
 
 // default handler for all resource methods
 function actionHandler (req, res, name, action, skipRes) {
-  let rsrc = resources[name]
+  const rsrc = resources[name]
   res = res || dummyRes
+
+  // prep beforeQuery handler
   let bq = rsrc.beforeQuery || {} // (req, res)
   if (typeof bq !== 'function') bq = bq[action]
-  let act = () => rsrc[action]
+
+  const act = () => rsrc[action]
     ? rsrc[action](req, res, name, action, skipRes)
     : handlers[action](name, req)
+
   if (rsrc[action]) return bq ? bq(req, res).then(act) : act()
+
+  // prep beforeSend handler
   let bs = rsrc.beforeSend || {} // (req, res, data)
   if (typeof bs !== 'function') bs = bs[action]
-  let send = (d) => skipRes ? Promise.resolve(d) : sendData(res, d)
-  let finish = (d) => bs ? bs(req, res, d).then(send) : send(d)
-  let run = () => bq ? bq(req, res).then(act).then(finish) : act().then(finish)
-  let handleErr = (e) => skipRes ? Promise.reject(e) : sendErr(res, e)
+
+  const send = (d) => skipRes ? Promise.resolve(d) : sendData(res, d)
+  const finish = (d) => bs ? bs(req, res, d).then(send) : send(d)
+  const run = () => bq ? bq(req, res).then(act).then(finish) : act().then(finish)
+  const handleErr = (e) => skipRes ? Promise.reject(e) : sendErr(res, e)
+
   return run().catch(handleErr)
 }
