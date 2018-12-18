@@ -72,7 +72,7 @@ start.polka = () => {
 }
 
 start.scrud = () => {
-  const scrudOpts = { port: ports.scrud, turbo: false }
+  const scrudOpts = { port: ports.scrud, turbo: true }
   const scrud = require('scrud')
   scrud.register('user', {
     create: (req, res) => scrud.sendData(res, req.params.user),

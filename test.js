@@ -79,10 +79,10 @@ test.serial('missing resource id returns 404', async (assert) => {
   await assert.throwsAsync(axios({ method: 'PUT', url, data: putBody, headers }))
 })
 
-test.serial('regession: body parses gracefully', async (assert) => {
+test.serial('regession: bad JSON body returns error', async (assert) => {
   let url = `http://localhost:${port}${basePath}/member/${id}`
   let headers = { Authorization: `Bearer ${jwt}` }
-  await assert.notThrowsAsync(axios({ method: 'PUT', url, data: 'u', headers }))
+  await assert.throwsAsync(axios({ method: 'PUT', url, data: 'u', headers }))
 })
 
 test('register throws with no name', async (assert) => {
