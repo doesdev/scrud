@@ -36,6 +36,7 @@
     "axios": "^0.18.0",
     "get-scrud": "^1.3.4",
     "husky": "^1.2.1",
+    "import-fresh": "^2.0.0",
     "turbo-http": "^0.3.0"
   }
 }

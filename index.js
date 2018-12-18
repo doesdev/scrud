@@ -64,7 +64,7 @@ let allowOrigins = {}
 let gzipThreshold = 1000
 let getIp
 let setScrudHeader
-let turbo
+let turbo = false
 
 // local helpers
 const logIt = (e, level = 'fatal') => {
@@ -138,16 +138,37 @@ const callPgFunc = (name, params, req) => {
 
 const bodyParse = (req) => new Promise((resolve, reject) => {
   let body = ''
-  const ondata = (d) => {
-    body += d.toString()
+  const ondata = (d, start, end) => {
+    if (start !== undefined && end !== undefined) {
+      body += d.slice(start, start + end).toString('utf8')
+    } else {
+      body += d.toString('utf8')
+    }
     if (body.length > maxBodyBytes) return reject(new Error('Body too large'))
   }
-  turbo ? (req.ondata = ondata) : req.on('data', ondata)
   const parse = () => {
-    try { resolve(body ? JSON.parse(body) : {}) } catch (ex) { resolve({}) }
+    try {
+      resolve(body ? JSON.parse(body) : {})
+    } catch (ex) {
+      logIt(ex, 'warn')
+      reject(new Error('Error parsing JSON request body'))
+    }
   }
-  turbo ? (req.onend = parse) : req.on('end', parse)
+
+  if (turbo) {
+    req.ondata = ondata
+    req.onend = parse
+  } else {
+    req.on('data', ondata)
+    req.on('end', parse)
+  }
 })
+
+const getBodyParser = (req) => {
+  if (!turbo) return () => bodyParse(req)
+  const prom = bodyParse(req)
+  return () => prom
+}
 
 const filterObj = (obj, ary) => {
   const base = {}
@@ -244,35 +265,37 @@ function start (opts = {}) {
 
 // request handler
 function handleRequest (req, res) {
+  const getBody = getBodyParser(req)
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
   const headers = (turbo ? req.getAllHeaders() : req.headers) || {}
+  const header = (k) => turbo ? headers.get(k) : headers[k]
 
-  const origin = headers['origin']
+  const origin = header('origin')
   if (origin) {
     if (!allowOrigins[origin]) return rejectPreflight(res, origin)
     res.setHeader('Access-Control-Allow-Origin', origin)
   }
-  if (req.method === 'OPTIONS' && headers['access-control-request-method']) {
-    return ackPreflight(res, origin, headers['access-control-request-headers'])
+  if (req.method === 'OPTIONS' && header('access-control-request-method')) {
+    return ackPreflight(res, origin, header('access-control-request-headers'))
   }
 
   const { name, action, id, params } = parseUrl(req)
   const resource = resources[name]
   if (!resource || !action) return fourOhFour(res)
 
-  res.useGzip = (headers['accept-encoding'] || '').indexOf('gzip') !== -1
+  res.useGzip = (header('accept-encoding') || '').indexOf('gzip') !== -1
   if (setScrudHeader) res.setHeader('SCRUD', `${name}:${action}`)
   if (checkId[action]) req.id = id
   req.params = params
   if (getIp) {
     let connection = req.connection || {}
-    req.params.ip = headers['x-forwarded-for'] || connection.remoteAddress
+    req.params.ip = header('x-forwarded-for') || connection.remoteAddress
   }
   if (!turbo) req.once('error', (err) => sendErr(res, err))
 
   const callHandler = () => {
     if (!hasBody[action]) return actionHandler(req, res, name, action)
-    return bodyParse(req).then((body) => {
+    return getBody().then((body) => {
       req.params = Object.assign(body, req.params)
       return actionHandler(req, res, name, action)
     }).catch((e) => sendErr(res, e))
@@ -281,7 +304,7 @@ function handleRequest (req, res) {
   const noAuth = !jwtOpts || (resource.skipAuth && resource.skipAuth[action])
   if (noAuth) return callHandler()
 
-  const jwt = (headers.authorization || '').replace(/^Bearer\s/, '')
+  const jwt = (header('authorization') || '').replace(/^Bearer\s/, '')
   authenticate(jwt).then((authData) => {
     req.auth = req.params.auth = authTrans ? authTrans(authData) : authData
     return callHandler()
