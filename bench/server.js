@@ -11,8 +11,9 @@ const ports = {
   fastify: 3011,
   polka: 3012,
   scrud: 3013,
-  express: 3014,
-  hapi: 3015
+  'scrud + turbo': 3014,
+  express: 3015,
+  hapi: 3016
 }
 
 const logStart = (n) => {
@@ -72,13 +73,23 @@ start.polka = () => {
 }
 
 start.scrud = () => {
-  const scrudOpts = { port: ports.scrud, turbo: true }
+  const scrudOpts = { port: ports.scrud, turbo: false }
   const scrud = require('scrud')
   scrud.register('user', {
     create: (req, res) => scrud.sendData(res, req.params.user),
     read: (req, res) => scrud.sendData(res, toSend)
   })
   scrud.start(scrudOpts).then(() => logStart('scrud'))
+}
+
+start['scrud + turbo'] = () => {
+  const scrudOpts = { port: ports['scrud + turbo'], turbo: true }
+  const scrud = require('scrud')
+  scrud.register('user', {
+    create: (req, res) => scrud.sendData(res, req.params.user),
+    read: (req, res) => scrud.sendData(res, toSend)
+  })
+  scrud.start(scrudOpts).then(() => logStart('scrud + turbo'))
 }
 
 start.express = () => {
