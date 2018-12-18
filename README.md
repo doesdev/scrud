@@ -148,7 +148,7 @@ Set global options and start API server
   - **getIp** - *optional* - should client IP be added to request object
     - type: `Boolean`
     - default: `false`
-  - **turbo** - *optional* - if turbo is installed as peer-dependency use it
+  - **turbo** - *optional* - if turbo is installed as peer-dependency use it (see [pr#16](https://github.com/doesdev/scrud/pull/16))
     - type: `Boolean`
     - default: `false`
   - **authTrans** - *optional* - Synchronous function that transforms the passed in auth object before proceeding with processing
