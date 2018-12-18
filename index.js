@@ -164,6 +164,12 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
   }
 })
 
+const getBodyParser = (req) => {
+  if (!turbo) return () => bodyParse(req)
+  const prom = bodyParse(req)
+  return () => prom
+}
+
 const filterObj = (obj, ary) => {
   const base = {}
   ary.forEach((o) => { if (o in obj) base[o] = obj[o] })
@@ -259,7 +265,7 @@ function start (opts = {}) {
 
 // request handler
 function handleRequest (req, res) {
-  const getBody = bodyParse(req)
+  const getBody = getBodyParser(req)
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
   const headers = (turbo ? req.getAllHeaders() : req.headers) || {}
   const header = (k) => turbo ? headers.get(k) : headers[k]
@@ -289,7 +295,7 @@ function handleRequest (req, res) {
 
   const callHandler = () => {
     if (!hasBody[action]) return actionHandler(req, res, name, action)
-    return getBody.then((body) => {
+    return getBody().then((body) => {
       req.params = Object.assign(body, req.params)
       return actionHandler(req, res, name, action)
     }).catch((e) => sendErr(res, e))
