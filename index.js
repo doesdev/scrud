@@ -64,7 +64,7 @@ let allowOrigins = {}
 let gzipThreshold = 1000
 let getIp
 let setScrudHeader
-let turbo
+let turbo = false
 
 // local helpers
 const logIt = (e, level = 'fatal') => {

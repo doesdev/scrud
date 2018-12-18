@@ -148,9 +148,12 @@ Set global options and start API server
   - **getIp** - *optional* - should client IP be added to request object
     - type: `Boolean`
     - default: `false`
+  - **turbo** - *optional* - if turbo is installed as peer-dependency use it
+    - type: `Boolean`
+    - default: `false`
   - **authTrans** - *optional* - Synchronous function that transforms the passed in auth object before proceeding with processing
     - type: `Function` - receives (Object[auth / JWT payload)])
-    - default: `1e6`
+    - default: `null`
     - returns: `Object` - updated auth object
 
 # helper functions (used internally but exported as a courtesy)
