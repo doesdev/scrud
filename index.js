@@ -65,6 +65,7 @@ let gzipThreshold = 1000
 let getIp
 let setScrudHeader
 let turbo = false
+let server
 
 // local helpers
 const logIt = (e, level = 'fatal') => {
@@ -255,7 +256,7 @@ function start (opts = {}) {
   }
 
   return new Promise((resolve, reject) => {
-    const server = http.createServer(handleRequest)
+    server = http.createServer(handleRequest)
     if (server.setTimeout) server.setTimeout(opts.timeout || defaultTimeout)
     server.listen(opts.port || port)
     if (opts.postgres) pgPool = new (require('pg')).Pool(opts.postgres)
@@ -265,10 +266,29 @@ function start (opts = {}) {
 
 // request handler
 function handleRequest (req, res) {
-  const getBody = getBodyParser(req)
-  res.setHeader('Content-Type', 'application/json; charset=utf-8')
   const headers = (turbo ? req.getAllHeaders() : req.headers) || {}
   const header = (k) => turbo ? headers.get(k) : headers[k]
+
+  if (turbo && header('connection') === 'Upgrade') {
+    req.headers = {}
+    for (const [k, v] of headers) { req.headers[k] = v }
+
+    const write = req.socket.write
+    req.socket.write = function (d, len, cb) {
+      return write.call(
+        req.socket,
+        Buffer.isBuffer(d) ? d : Buffer.from(d, 'utf8'),
+        len,
+        cb
+      )
+    }
+    req.socket.setNoDelay = req.socket.setTimeout = noop
+
+    return server.emit('upgrade', req, req.socket, Buffer.alloc(0))
+  }
+
+  const getBody = getBodyParser(req)
+  res.setHeader('Content-Type', 'application/json; charset=utf-8')
 
   const origin = header('origin')
   if (origin) {
