@@ -137,9 +137,7 @@ async function bench () {
     { alias: 'req/sec', width: 12 },
     { alias: 'latency', width: 12 },
     { alias: 'throughput', width: 14 },
-    { alias: 'errors', width: 11 },
-    { alias: 'memory (start)' },
-    { alias: 'memory (end)' }
+    { alias: 'errors', width: 11 }
   ].map((h) => Object.assign({ paddingLeft: 0, paddingRight: 0 }, h))
 
   results.sort((a, b) => b.requests.average - a.requests.average)
@@ -148,9 +146,7 @@ async function bench () {
     r.requests.average,
     r.latency.average,
     formatBytes(r.throughput.average),
-    r.errors + r.non2xx,
-    memory[r.title].start.split('/').map(formatBytes).join('\n'),
-    memory[r.title].end.split('/').map(formatBytes).join('\n')
+    r.errors + r.non2xx
   ])
 
   const consoleOut = table(head, rows).render()
