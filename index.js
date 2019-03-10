@@ -94,7 +94,7 @@ const parseUrl = (req) => {
   const name = noMod ? url : url.slice(0, modIdx)
   const modifier = noMod || modIdx === lastIdx ? '' : url.charAt(modIdx)
   const action = scrud[`${req.method}${modifier}`]
-  const params = tinyParams(url)
+  const params = tinyParams(req.url)
   const data = { url, name, action, id, params }
 
   urlCache.set(sig, data)
