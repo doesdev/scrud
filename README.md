@@ -55,7 +55,7 @@ const scrud = require('scrud')
 const config = require('./secrets.json')
 
 async function main () {
-  let memberHandler = {
+  const memberHandler = {
     update: (req, res) => scrud.sendData(res, 'not updated, goteem'),
     delete: (req, res) => scrud.sendErr(res, new Error('Resource cannot be deleted')),
     beforeQuery: {
@@ -71,7 +71,8 @@ async function main () {
       }
     }
   }
-  await scrud.register('member', memberHandler)
+
+  scrud.register('member', memberHandler)
   await scrud.start(config)
 }
 ```
