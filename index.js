@@ -186,6 +186,7 @@ const destroy = handlers.delete = (rsrc, req) => pgActions(rsrc, 'delete', req)
 
 // exports
 module.exports = {
+  resources,
   register,
   start,
   sendData,
@@ -210,20 +211,26 @@ module.exports = {
 
 // register resource
 function register (name, opts = {}) {
-  if (!name) return Promise.reject(new Error(`No name specified in register`))
-  return new Promise((resolve, reject) => {
-    const r = resources[name] = Object.assign({}, opts, { name })
-    if (Array.isArray(r.skipAuth)) {
-      const skippers = {}
-      r.skipAuth.forEach((a) => { skippers[a] = true })
-      r.skipAuth = skippers
-    }
-    return resolve(r)
-  })
+  if (!name) throw new Error(`No name specified in register`)
+  const r = resources[name] = Object.assign({}, opts, { name })
+  if (Array.isArray(r.skipAuth)) {
+    const skippers = {}
+    r.skipAuth.forEach((a) => { skippers[a] = true })
+    r.skipAuth = skippers
+  }
+  return r
 }
 
 // start server
 function start (opts = {}) {
+  if (Array.isArray(opts.registerAPIs)) {
+    for (const api of opts.registerAPIs) {
+      if (typeof api === 'string') register(api)
+      else if (api.name) register(api.name, api.handlers)
+      else return Promise.reject(new Error(`No name specified in registerAPIs`))
+    }
+  }
+
   if (opts.namespace) pgPrefix = `${opts.namespace.toLowerCase()}_`
   if (opts.maxBodyBytes) maxBodyBytes = opts.maxBodyBytes
   if (opts.jsonwebtoken) {
@@ -445,10 +452,17 @@ function actionHandler (req, res, name, action, skipRes) {
   let bs = rsrc.beforeSend || {} // (req, res, data)
   if (typeof bs !== 'function') bs = bs[action]
 
+  // prep onError handler
+  let onErr = rsrc.onError || {} // (req, res, error)
+  if (typeof onErr !== 'function') onErr = onErr[action]
+
   const send = (d) => skipRes ? Promise.resolve(d) : sendData(res, d)
   const finish = (d) => bs ? bs(req, res, d).then(send) : send(d)
   const run = () => bq ? bq(req, res).then(act).then(finish) : act().then(finish)
-  const handleErr = (e) => skipRes ? Promise.reject(e) : sendErr(res, e)
+  const handleErr = (e) => {
+    if (onErr) return onErr(req, res, e)
+    return skipRes ? Promise.reject(e) : sendErr(res, e)
+  }
 
   return run().catch(handleErr)
 }

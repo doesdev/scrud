@@ -78,7 +78,7 @@ async function main () {
 
 # api
 
-### scrud.register(resourceName, actionHandlers)
+### scrud.register(name, handlers)
 - Registers a resource as an API, enabling it to respond to SCRUD actions against it
 - A common pattern would be registering resources that correlate to database tables
 - Does not have to correlate to a database table
@@ -96,29 +96,37 @@ async function main () {
 ***Returns:*** Promise which with resolves with resource object
 
 ***Arguments:***
-- **resourceName** - `String` - *required* - example: `'user'`
-- **actionHandlers** - `Object` - *optional*
-  - example: `{read: (req, res) => scrud.sendData(res, req.params.id)}`
+- **name** - `String` - *required* - (name of resource) example: `'user'`
+- **handlers** - `Object` - *optional*
+  - example: `{ read: (req, res) => scrud.sendData(res, req.params.id) }`
   - **search**, **create**, **read**, **update**, **delete** - *optional*
-    - type: `Function`
+    - type: `async Function`
     - receives: (http.ClientRequest, http.ServerResponse)
     - default: calls `${namespace}_${resource}_${action}(IN jsonb, OUT jsonb)` PG function and responds to client with array of records or error
   - **beforeQuery** - `Object` - optional
-    - example: `{beforeQuery: {delete: (req, res) => scrud.logIt(req.ip, 'debug')}}`
+    - example: `{ beforeQuery: { delete: async (req, res) => scrud.logIt(req.ip, 'debug') } }`
     - **search**, **create**, **read**, **update**, **delete** - *optional*
-      - type: `Function`
+      - type: `async Function`
       - receives: (http.ClientRequest, http.ServerResponse)
       - should return: `Promise`
       - default: `null`
       - **IMPORTANT:** If a Promise isn't returned or doesn't resolve or reject and the function doesn't close the response it will be hung
   - **beforeSend** - `Object` - optional
-    - example: `{beforeSend: {read: (req, res, data) => Promise.resolve('hello')}}`
+    - example: `{ beforeSend: { read: (req, res, data) => Promise.resolve('hello') } }`
     - **search**, **create**, **read**, **update**, **delete** - *optional*
-      - type: `Function`
+      - type: `async Function`
       - receives: (http.ClientRequest, http.ServerResponse, data)
       - should return: `Promise` that resolves with data to be sent to client
       - default: `null`
       - **IMPORTANT:** If a Promise isn't returned or doesn't resolve or reject and the function doesn't close the response it will be hung. Also, the data that is sent in the promise resolution will be passed to the client, be sure it's what you intend to send.
+  - **onError** - `Object` - optional
+    - example: `{ onError: { read: (req, res, error) => scrud.sendErr(error) } }`
+    - **search**, **create**, **read**, **update**, **delete** - *optional*
+      - type: `Function`
+      - receives: (http.ClientRequest, http.ServerResponse, error)
+      - should return: doesn't matter
+      - default: `null`
+      - **IMPORTANT:** You need to respond to the client so their request isn't hung
 
 ### scrud.start(options)
 Set global options and start API server
@@ -127,6 +135,9 @@ Set global options and start API server
 
 ***Arguments:***
 - **options** - `Object` - *required*
+  - **registerAPIs** - *optional* - base path for APIs (i.e. `https://host.com/${basePath}/resource`)
+    - type: `Array` of either `Strings` (resource name) or `Object` of type `{ name, handlers }`
+    - default: `null`
   - **basePath** - *optional* - base path for APIs (i.e. `https://host.com/${basePath}/resource`)
     - type: `String`
     - default: `null`
