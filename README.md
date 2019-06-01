@@ -38,7 +38,7 @@ It is competitively fast. It's neither the fastest thing out there or the slowes
 
 # benchmarks
 
-As always, take benches with a grain of salt. The point is that we care about performance and optimize for it. To see benchmarking details check out the bench directory. The gist is this, all libs return a simple JSON response and the proper content-type headers. Each server is run in their own forked process and gets a warm up run for 3 seconds before we start tracking the results.
+As always, take benches with a grain of salt. The point is that we care about performance and optimize for it. To see benchmarking details check out the [bench directory](https://github.com/doesdev/scrud/tree/master/bench). The gist is this, all libs return a simple JSON response and the proper content-type headers. Each server is run in their own forked process and gets a warm up run for 3 seconds before we start tracking the results.
 
 ![Benchmark](bench/results/read.png)
 
