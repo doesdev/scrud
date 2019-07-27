@@ -1,10 +1,10 @@
 'use strict'
 
-import test from 'ava'
-import requireFresh from 'import-fresh'
-import axios from 'axios'
-import path from 'path'
-import getScrud from 'get-scrud'
+const test = require('mvt')
+const requireFresh = require('import-fresh')
+const axios = require('axios')
+const path = require('path')
+const getScrud = require('get-scrud')
 const allowOrigins = ['localhost']
 const postBody = {
   first: 'andrew',
@@ -55,6 +55,11 @@ test.before(async () => {
   config.turbo.apiCall = getScrud(Object.assign({}, apiOpts, config.turbo))
 })
 
+test.after(() => {
+  config.http.scrud.shutdown()
+  config.turbo.scrud.shutdown()
+})
+
 const getConfig = (turbo) => {
   const configKey = turbo ? 'turbo' : 'http'
   const { scrud, port, apiCall, jwt } = config[configKey]
@@ -63,42 +68,42 @@ const getConfig = (turbo) => {
   return { scrud, port, apiCall, jwt, sendData }
 }
 
-for (let turbo of [false, true]) {
+for (const turbo of [false, true]) {
   let id
   const pre = turbo ? `turbo: ` : ''
 
-  test.serial(`${pre}CREATE`, async (assert) => {
+  test(`${pre}CREATE`, async (assert) => {
     const { apiCall } = getConfig(turbo)
     // create first so that we can expect data in other actions
-    let c = await apiCall('member', 'create', postBody)
+    const c = await apiCall('member', 'create', postBody)
     id = c.id
     assert.truthy(id)
   })
 
-  test.serial(`${pre}SEARCH`, async (assert) => {
+  test(`${pre}SEARCH`, async (assert) => {
     const { apiCall } = getConfig(turbo)
-    let s = await apiCall('member', 'search', { first: 'andrew' })
+    const s = await apiCall('member', 'search', { first: 'andrew' })
     assert.true(Array.isArray(s) && s.length > 0)
   })
 
-  test.serial(`${pre}READ`, async (assert) => {
+  test(`${pre}READ`, async (assert) => {
     const { apiCall } = getConfig(turbo)
-    let r = await apiCall('member', 'read', id)
+    const r = await apiCall('member', 'read', id)
     assert.is(r.zip, '37601')
   })
 
-  test.serial(`${pre}UPDATE`, async (assert) => {
+  test(`${pre}UPDATE`, async (assert) => {
     const { apiCall } = getConfig(turbo)
-    let u = await apiCall('member', 'update', id, putBody)
+    const u = await apiCall('member', 'update', id, putBody)
     assert.is(u.zip, '37615')
   })
 
-  test.serial(`${pre}DELETE`, async (assert) => {
+  test(`${pre}DELETE`, async (assert) => {
     const { apiCall } = getConfig(turbo)
-    await assert.notThrowsAsync(apiCall('member', 'delete', id))
+    await assert.notThrowsAsync(() => apiCall('member', 'delete', id))
   })
 
-  test.serial(`${pre}[:resource].beforeSend works`, async (assert) => {
+  test(`${pre}[:resource].beforeSend works`, async (assert) => {
     const { scrud, apiCall } = getConfig(turbo)
     const { member } = scrud.resources
     const sendIt = 'hey dair'
@@ -112,7 +117,7 @@ for (let turbo of [false, true]) {
     assert.is(result, sendIt)
   })
 
-  test.serial(`${pre}[:resource].beforeQuery works`, async (assert) => {
+  test(`${pre}[:resource].beforeQuery works`, async (assert) => {
     const { scrud, apiCall } = getConfig(turbo)
     const { member } = scrud.resources
     const sendIt = 'hey dair'
@@ -128,7 +133,7 @@ for (let turbo of [false, true]) {
     assert.is(result, sendIt)
   })
 
-  test.serial(`${pre}[:resource].onError works`, async (assert) => {
+  test(`${pre}[:resource].onError works`, async (assert) => {
     let error
     const { scrud, apiCall } = getConfig(turbo)
     const { sendData } = scrud
@@ -143,7 +148,7 @@ for (let turbo of [false, true]) {
     assert.is(error, 'function scrud_nopgfunc_read(unknown) does not exist')
   })
 
-  test.serial(`${pre}[:resource].beforeSend[:action] works`, async (assert) => {
+  test(`${pre}[:resource].beforeSend[:action] works`, async (assert) => {
     const { scrud, apiCall } = getConfig(turbo)
     const { member } = scrud.resources
     const sendIt = 'hey dair'
@@ -157,7 +162,7 @@ for (let turbo of [false, true]) {
     assert.is(result, sendIt)
   })
 
-  test.serial(`${pre}[:resource].beforeQuery[:action] works`, async (assert) => {
+  test(`${pre}[:resource].beforeQuery[:action] works`, async (assert) => {
     const { scrud, apiCall } = getConfig(turbo)
     const { member } = scrud.resources
     const sendIt = 'hey dair'
@@ -175,7 +180,7 @@ for (let turbo of [false, true]) {
     assert.is(result, sendIt)
   })
 
-  test.serial(`${pre}[:resource].onError[:action] works`, async (assert) => {
+  test(`${pre}[:resource].onError[:action] works`, async (assert) => {
     let error
     const { scrud, apiCall } = getConfig(turbo)
     const { sendData } = scrud
@@ -192,10 +197,10 @@ for (let turbo of [false, true]) {
     assert.is(error, 'function scrud_nopgfunc_read(unknown) does not exist')
   })
 
-  test.serial(`${pre}missing resource id returns 404`, async (assert) => {
+  test(`${pre}missing resource id returns 404`, async (assert) => {
     const { port, jwt } = getConfig(turbo)
-    let url = `http://localhost:${port}${basePath}/member/`
-    let headers = { Authorization: `Bearer ${jwt}` }
+    const url = `http://localhost:${port}${basePath}/member/`
+    const headers = { Authorization: `Bearer ${jwt}` }
     try {
       await axios({ method: 'PUT', url, data: putBody, headers })
     } catch (ex) {
@@ -204,10 +209,10 @@ for (let turbo of [false, true]) {
     }
   })
 
-  test.serial(`${pre}bad JSON body returns error`, async (assert) => {
+  test(`${pre}bad JSON body returns error`, async (assert) => {
     const { port, jwt } = getConfig(turbo)
-    let url = `http://localhost:${port}${basePath}/member/${id}`
-    let headers = { Authorization: `Bearer ${jwt}` }
+    const url = `http://localhost:${port}${basePath}/member/${id}`
+    const headers = { Authorization: `Bearer ${jwt}` }
     try {
       await axios({ method: 'PUT', url, data: 'u', headers })
     } catch (ex) {
@@ -216,43 +221,44 @@ for (let turbo of [false, true]) {
     }
   })
 
-  test.serial(`${pre}register throws with no name`, async (assert) => {
+  test(`${pre}register throws with no name`, async (assert) => {
     const { scrud } = getConfig(turbo)
-    await assert.throws(scrud.register, Error, 'register throws with no name')
+    await assert.throws(scrud.register, Error)
   })
 
-  test.serial(`${pre}register returns resource object`, async (assert) => {
+  test(`${pre}register returns resource object`, async (assert) => {
     const { scrud } = getConfig(turbo)
     const resource = scrud.register('profile')
     assert.truthy(resource, 'resource is defined')
-    assert.truthy(resource.hasOwnProperty('name'), 'resource has name')
+    const hasName = Object.prototype.hasOwnProperty.call(resource, 'name')
+    assert.truthy(hasName, 'resource has name')
     assert.is(resource.name, 'profile')
   })
 
-  test.serial(`${pre}exported resource DB helpers work as expected`, async (assert) => {
+  test(`${pre}exported resource DB helpers work as expected`, async (assert) => {
     const { scrud } = getConfig(turbo)
-    let locId = (await scrud.insert('member', { params: { zip: 37615 } })).id
+    const locId = (await scrud.insert('member', { params: { zip: 37615 } })).id
     assert.is((await scrud.findAll('member', { params: { id: locId } }))[0].zip, '37615')
-    await assert.notThrowsAsync(scrud.save('member', { id: locId, params: { zip: '37610' } }))
+    await assert.notThrowsAsync(() => scrud.save('member', { id: locId, params: { zip: '37610' } }))
     assert.is((await scrud.find('member', { id: locId, params: {} })).zip, '37610')
-    await assert.notThrowsAsync(scrud.destroy('member', { id: locId, params: {} }))
+    await assert.notThrowsAsync(() => scrud.destroy('member', { id: locId, params: {} }))
   })
 
-  test.serial(`${pre}exported SCRUD helpers work as expected`, async (assert) => {
+  test(`${pre}exported SCRUD helpers work as expected`, async (assert) => {
     const { scrud } = getConfig(turbo)
-    let locId = (await scrud.create('member', { params: { zip: 37615 } })).id
+    const locId = (await scrud.create('member', { params: { zip: 37615 } })).id
     assert.is((await scrud.search('member', { params: { id: locId } }))[0].zip, '37615')
-    await assert.notThrowsAsync(scrud.update('member', { id: locId, params: { zip: 37610 } }))
+    await assert.notThrowsAsync(() => scrud.update('member', { id: locId, params: { zip: 37610 } }))
     assert.is((await scrud.read('member', { id: locId, params: {} })).zip, '37610')
-    await assert.notThrowsAsync(scrud.delete('member', { id: locId, params: {} }))
+    await assert.notThrowsAsync(() => scrud.delete('member', { id: locId, params: {} }))
   })
 
-  test.serial(`${pre}basePth and path edge cases are handled properly`, async (assert) => {
+  test(`${pre}basePth and path edge cases are handled properly`, async (assert) => {
     const { scrud, port, jwt, sendData } = getConfig(turbo)
-    let hdl = (req, res) => Promise.resolve(sendData(res, 'test'))
-    let handlers = { search: hdl, create: hdl, read: hdl, update: hdl, delete: hdl }
+    const hdl = (req, res) => Promise.resolve(sendData(res, 'test'))
+    const handlers = { search: hdl, create: hdl, read: hdl, update: hdl, delete: hdl }
     scrud.register('api', handlers)
-    let headers = { Authorization: `Bearer ${jwt}` }
+    const headers = { Authorization: `Bearer ${jwt}` }
     let res
     res = await axios(`http://localhost:${port}${basePath}/api/1`, { headers })
     assert.is(res.headers.scrud, 'api:read')
@@ -260,7 +266,7 @@ for (let turbo of [false, true]) {
     assert.is(res.headers.scrud, 'api:read')
     res = await axios(`http://localhost:${port}${basePath}/api/ `, { headers })
     assert.is(res.headers.scrud, 'api:search')
-    let enc = encodeURIComponent(`?a=b&c[]=._*j&d=1/1/18&e=f?k`)
+    const enc = encodeURIComponent(`?a=b&c[]=._*j&d=1/1/18&e=f?k`)
     res = await axios(`http://localhost:${port}${basePath}/api${enc} `, { headers })
     assert.is(res.headers.scrud, 'api:search')
   })

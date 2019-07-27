@@ -171,6 +171,7 @@ Set global options and start API server
 # helper functions (used internally but exported as a courtesy)
 
 ## generic helpers
+- `shutdown`() - close server and end open database connections
 - `sendData`(response, data) - send response data to client
 - `sendErr`(response, error, code) - send error to client  
 - `fourOhOne`(response, error) - send 401 (unauthorized) error to client  

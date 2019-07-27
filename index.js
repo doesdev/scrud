@@ -50,6 +50,7 @@ const wlSign = [
 const urlCache = new Lru({ maxSize: 20 })
 
 // globals
+let server
 let jsonwebtoken
 let logger
 let pgPool
@@ -59,8 +60,8 @@ let pgPrefix = ''
 let base = '/'
 let baseChars = base.length
 let maxBodyBytes = 1e6
-let resources = {}
-let allowOrigins = {}
+const resources = {}
+const allowOrigins = {}
 let gzipThreshold = 1000
 let getIp
 let setScrudHeader
@@ -129,7 +130,7 @@ const callPgFunc = (name, params, req) => {
     try {
       err.meta = err.meta || {}
       err.meta.pgFunction = name
-      let errObj = JSON.parse(err.message)
+      const errObj = JSON.parse(err.message)
       err.message = errObj.error ? errObj.error : errObj
     } catch (ex) {}
     return Promise.reject(err)
@@ -189,6 +190,7 @@ module.exports = {
   resources,
   register,
   start,
+  shutdown,
   sendData,
   sendErr,
   logIt,
@@ -262,12 +264,18 @@ function start (opts = {}) {
   }
 
   return new Promise((resolve, reject) => {
-    const server = http.createServer(handleRequest)
+    server = http.createServer(handleRequest)
     if (server.setTimeout) server.setTimeout(opts.timeout || defaultTimeout)
     server.listen(opts.port || port)
     if (opts.postgres) pgPool = new (require('pg')).Pool(opts.postgres)
     return resolve(server)
   })
+}
+
+function shutdown () {
+  if (server && typeof server.close === 'function') server.close()
+  if (server && typeof server.unref === 'function') server.unref()
+  if (pgPool && typeof pgPool.end === 'function') pgPool.end()
 }
 
 // request handler
@@ -295,7 +303,7 @@ function handleRequest (req, res) {
   if (checkId[action]) req.id = id
   req.params = params
   if (getIp) {
-    let connection = req.connection || {}
+    const connection = req.connection || {}
     req.params.ip = header('x-forwarded-for') || connection.remoteAddress
   }
   if (!turbo) req.once('error', (err) => sendErr(res, err))

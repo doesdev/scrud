@@ -18,13 +18,13 @@ const ports = {
 
 const logStart = (n) => {
   process.send(n)
-  let { heapUsed, heapTotal } = process.memoryUsage()
+  const { heapUsed, heapTotal } = process.memoryUsage()
   process.send(`startMem${heapUsed}/${heapTotal}`)
 }
 
 process.on('message', (m) => {
   if (m === 'endMemory') {
-    let { heapUsed, heapTotal } = process.memoryUsage()
+    const { heapUsed, heapTotal } = process.memoryUsage()
     return process.send(`endMem${heapUsed}/${heapTotal}`)
   }
 })
