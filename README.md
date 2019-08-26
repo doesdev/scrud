@@ -2,7 +2,7 @@
   <img src="https://github.com/doesdev/scrud/raw/master/assets/scrud-logo.png" alt="SCRUD" width="400" />
 </div>
 
-# scrud [![NPM version](https://badge.fury.io/js/scrud.svg)](https://npmjs.org/package/scrud)   [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)   [![Dependency Status](https://dependencyci.com/github/doesdev/scrud/badge)](https://dependencyci.com/github/doesdev/scrud)
+# scrud [![NPM version](https://badge.fury.io/js/scrud.svg)](https://npmjs.org/package/scrud)   [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)   
 
 > SCRUD API server, fast, light, capable
 

@@ -45,7 +45,7 @@ Promise.all(Object.keys(ports).map((k) => new Promise((resolve, reject) => {
 }))).then(() => bench())
 
 const urlTemplate = (port, string) => {
-  const path = post ? `/user` : `/user/${benchId}`
+  const path = post ? '/user' : `/user/${benchId}`
   const url = { host: 'localhost', port, path }
   return string ? `http://${url.host}:${url.port}${url.path}` : url
 }
@@ -104,7 +104,7 @@ const checkConsistency = async (name) => {
   data = `${JSON.stringify(data)}-isJson:${isJSON}`
 
   if (!data || (last.lib && last.result !== data)) {
-    const err = new Error(`Got inconsistent results from libraries`)
+    const err = new Error('Got inconsistent results from libraries')
     err.meta = [`${last.lib} - ${last.result}`, `${name} - ${data}`]
     throw err
   }
@@ -117,7 +117,7 @@ const getEndMemory = (name) => new Promise((resolve, reject) => {
 })
 
 async function bench () {
-  console.log(`servers running, starting benchmarks\n`)
+  console.log('servers running, starting benchmarks\n')
   const keys = shuffler(Object.keys(ports))
 
   for (const name of keys) {

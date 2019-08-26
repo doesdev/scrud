@@ -3,7 +3,7 @@
 const { join } = require('path')
 const ngoOpts = { goPath: join(__dirname, 'gopath') }
 const ngo = require('ngo')
-const EMITTER_LISTEN = `:6788`
+const EMITTER_LISTEN = ':6788'
 let broker
 
 async function startBroker (brokerOpts = { EMITTER_LISTEN }) {

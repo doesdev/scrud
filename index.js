@@ -213,7 +213,7 @@ module.exports = {
 
 // register resource
 function register (name, opts = {}) {
-  if (!name) throw new Error(`No name specified in register`)
+  if (!name) throw new Error('No name specified in register')
   const r = resources[name] = Object.assign({}, opts, { name })
   if (Array.isArray(r.skipAuth)) {
     const skippers = {}
@@ -229,7 +229,7 @@ function start (opts = {}) {
     for (const api of opts.registerAPIs) {
       if (typeof api === 'string') register(api)
       else if (api.name) register(api.name, api.handlers)
-      else return Promise.reject(new Error(`No name specified in registerAPIs`))
+      else return Promise.reject(new Error('No name specified in registerAPIs'))
     }
   }
 
@@ -328,7 +328,7 @@ function handleRequest (req, res) {
 
 function sendData (res, data = null) {
   if (res.headersSent || res.headerSent) {
-    logIt(new Error(`Can't send data after headers sent`), 'warn')
+    logIt(new Error('Can\'t send data after headers sent'), 'warn')
     return Promise.resolve()
   }
 
@@ -354,7 +354,7 @@ function sendData (res, data = null) {
 function sendErr (res, err, code = 500) {
   res.statusCode = code
   if (res.headersSent || res.headerSent) {
-    logIt(err || new Error(`Can't send error after headers sent`), 'warn')
+    logIt(err || new Error('Can\'t send error after headers sent'), 'warn')
     return Promise.resolve()
   } else {
     if (res.removeHeader) res.removeHeader('content-encoding')
@@ -373,11 +373,11 @@ function sendErr (res, err, code = 500) {
   })
 }
 
-function fourOhOne (res, err = new Error(`Unable to authenticate request`)) {
+function fourOhOne (res, err = new Error('Unable to authenticate request')) {
   return sendErr(res, err, 401)
 }
 
-function fourOhFour (res, err = new Error(`No match for requested route`)) {
+function fourOhFour (res, err = new Error('No match for requested route')) {
   return sendErr(res, err, 404)
 }
 

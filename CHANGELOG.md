@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [6.0.4](https://github.com/doesdev/scrud/compare/6.0.3...6.0.4)
+
+> 26 August 2019
+
+- Update dependencies
+- Fix some standard style issues
+
 ### [6.0.3](https://github.com/doesdev/scrud/compare/6.0.0...6.0.3)
 
 > 26 July 2019

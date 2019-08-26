@@ -24,10 +24,10 @@ const opts = {
   setScrudHeader: true,
   registerAPIs: ['member'],
   jsonwebtoken: {
-    secret: `SomeRandomAstString`,
-    algorithm: `HS256`,
-    issuer: `SCRUD`,
-    audience: `client`,
+    secret: 'SomeRandomAstString',
+    algorithm: 'HS256',
+    issuer: 'SCRUD',
+    audience: 'client',
     expiresIn: 1800
   }
 }
@@ -64,13 +64,13 @@ const getConfig = (turbo) => {
   const configKey = turbo ? 'turbo' : 'http'
   const { scrud, port, apiCall, jwt } = config[configKey]
   const { sendData } = scrud
-  if (port !== ports[configKey]) throw new Error(`Ports not matching`)
+  if (port !== ports[configKey]) throw new Error('Ports not matching')
   return { scrud, port, apiCall, jwt, sendData }
 }
 
 for (const turbo of [false, true]) {
   let id
-  const pre = turbo ? `turbo: ` : ''
+  const pre = turbo ? 'turbo: ' : ''
 
   test(`${pre}CREATE`, async (assert) => {
     const { apiCall } = getConfig(turbo)
@@ -167,9 +167,9 @@ for (const turbo of [false, true]) {
     const { member } = scrud.resources
     const sendIt = 'hey dair'
 
-    member.beforeQuery = { read: async (req, res) => {
-      req.params.x = sendIt
-    } }
+    member.beforeQuery = {
+      read: async (req, res) => { req.params.x = sendIt }
+    }
     member.beforeSend = { read: async (req, res, data) => req.params.x }
 
     const result = await apiCall('member', 'read', id)
@@ -266,7 +266,7 @@ for (const turbo of [false, true]) {
     assert.is(res.headers.scrud, 'api:read')
     res = await axios(`http://localhost:${port}${basePath}/api/ `, { headers })
     assert.is(res.headers.scrud, 'api:search')
-    const enc = encodeURIComponent(`?a=b&c[]=._*j&d=1/1/18&e=f?k`)
+    const enc = encodeURIComponent('?a=b&c[]=._*j&d=1/1/18&e=f?k')
     res = await axios(`http://localhost:${port}${basePath}/api${enc} `, { headers })
     assert.is(res.headers.scrud, 'api:search')
   })
