@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/doesdev/scrud/realtime#readme",
   "dependencies": {
-    "ngo": "^2.5.2"
+    "ngo": "^2.6.1"
   },
   "devDependencies": {}
 }

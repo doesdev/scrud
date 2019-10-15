@@ -7,15 +7,15 @@
     "renderText": "node index --render && node index --render --post"
   },
   "dependencies": {
-    "autocannon": "^4.0.0",
+    "autocannon": "^4.1.1",
     "body-parser": "^1.19.0",
     "carbon-now-cli": "^1.4.0",
     "express": "^4.17.1",
-    "fastify": "^2.6.0",
+    "fastify": "^2.10.0",
     "hapi": "^18.1.0",
     "polka": "^0.5.2",
     "scrud": "file:../",
-    "tty-table": "^2.7.3",
+    "tty-table": "^2.7.6",
     "turbo-http": "^0.3.2"
   }
 }

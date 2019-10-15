@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### Unreleased
+
+- Update a bunch of dev deps (10/15/19)
+
 ### [6.0.4](https://github.com/doesdev/scrud/compare/6.0.3...6.0.4)
 
 > 26 August 2019
