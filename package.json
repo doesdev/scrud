@@ -1,6 +1,6 @@
 {
   "name": "scrud",
-  "version": "6.0.4",
+  "version": "6.0.5",
   "description": "SCRUD API server, fast, light, capable",
   "engines": {
     "node": ">=6.0.0"
@@ -25,15 +25,15 @@
   "homepage": "http://scrud.doesdev.com",
   "dependencies": {
     "jsonwebtoken": "~8.5.1",
-    "pg": "~7.12.1",
+    "pg": "~7.13.0",
     "quick-lru": "^4.0.1",
     "tiny-params": "~4.0.0"
   },
   "devDependencies": {
     "axios": "^0.19.0",
     "get-scrud": "^1.4.3",
-    "husky": "^3.0.9",
-    "import-fresh": "^3.1.0",
+    "husky": "^3.1.0",
+    "import-fresh": "^3.2.1",
     "mvt": "^4.0.0",
     "standard": "^14.3.1",
     "turbo-http": "^0.3.2"
