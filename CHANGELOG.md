@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [6.0.6](https://github.com/doesdev/scrud/compare/6.0.5...6.0.6)
+
+> 8 January 2020
+
+- Update pg, a couple dev deps (again)
+
 ### [6.0.5](https://github.com/doesdev/scrud/compare/6.0.4...6.0.5)
 
 > 20 November 2019
