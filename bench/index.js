@@ -1,5 +1,6 @@
 'use strict'
 
+const http = require('http')
 const { fork } = require('child_process')
 const { join } = require('path')
 const { writeFileSync } = require('fs')
@@ -73,22 +74,42 @@ const formatBytes = (bytes) => {
 const bencher = (title) => new Promise((resolve, reject) => {
   console.log(`benchmarking ${title}`)
   const port = ports[title]
+  const method = post ? 'POST' : 'GET'
+  const url = urlTemplate(port, true)
+  const body = post ? JSON.stringify({ user }) : undefined
   const done = (err, res) => {
     if (err) return reject(err)
     results.push(res)
     return resolve(title)
   }
-  const acOpts = {
-    title,
-    url: urlTemplate(port, true),
-    body: post ? JSON.stringify({ user }) : undefined,
-    method: post ? 'POST' : 'GET',
-    connections: lob || post ? 10 : 50,
-    pipelining: lob || post ? 1 : 10
-  }
-  autocannon(Object.assign({ duration: warmupSec }, acOpts), () => {
-    autocannon(Object.assign({ duration: runSec }, acOpts), done)
+
+  const req = http.request(url, { method }, (res) => {
+    let expectBody = ''
+    res.setEncoding('utf8')
+    res.on('data', (chunk) => {
+      expectBody += chunk
+    })
+
+    res.on('end', () => {
+      const acOpts = {
+        title,
+        url,
+        method,
+        body,
+        connections: lob || post ? 10 : 50,
+        pipelining: lob || post ? 1 : 10,
+        expectBody
+      }
+
+      autocannon(Object.assign({ duration: warmupSec }, acOpts), () => {
+        autocannon(Object.assign({ duration: runSec }, acOpts), done)
+      })
+    })
   })
+
+  req.on('error', reject)
+  if (body) req.write(body)
+  req.end()
 })
 
 let last = {}
@@ -99,9 +120,9 @@ const checkConsistency = async (name) => {
     method: post ? 'POST' : 'GET',
     data: post ? { user } : undefined
   }
-  let { data, headers } = await axios(clientOpts)
+  const { data: rawData, headers } = await axios(clientOpts)
   const isJSON = headers['content-type'].indexOf('application/json') !== -1
-  data = `${JSON.stringify(data)}-isJson:${isJSON}`
+  const data = `${JSON.stringify(rawData)}-isJson:${isJSON}`
 
   if (!data || (last.lib && last.result !== data)) {
     const err = new Error('Got inconsistent results from libraries')
@@ -146,7 +167,7 @@ async function bench () {
     r.requests.average,
     r.latency.average,
     formatBytes(r.throughput.average),
-    r.errors + r.non2xx
+    r.errors + r.non2xx + r.mismatches
   ])
 
   const consoleOut = table(head, rows).render()

@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [6.0.7](https://github.com/doesdev/scrud/compare/6.0.6...6.0.7)
+
+> 3 March 2020
+
+#### Dependencies
+- Update pg
+- Update quick-lru
+- Update dev deps
+
+#### Benchmarks
+- Use expectBody and mark mismatches as errors
+- Update hapi, fastify, autocannon
+- Roll back tty-table because I'm too lazy to try and update it
+- Update bench results
+
 ### [6.0.6](https://github.com/doesdev/scrud/compare/6.0.5...6.0.6)
 
 > 8 January 2020

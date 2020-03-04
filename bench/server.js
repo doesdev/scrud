@@ -108,7 +108,7 @@ start.express = () => {
 }
 
 start.hapi = () => {
-  const { server: hapi } = require('hapi')
+  const { server: hapi } = require('@hapi/hapi')
   const server = hapi({ host: 'localhost', port: ports.hapi })
   server.route({
     method: 'GET',
