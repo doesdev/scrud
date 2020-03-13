@@ -10,8 +10,12 @@
     "index.js"
   ],
   "scripts": {
-    "test": "standard && mvt --verbose",
-    "precommit": "standard && mvt"
+    "test": "mvt --verbose"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "mvt"
+    }
   },
   "repository": {
     "type": "git",
@@ -35,7 +39,6 @@
     "husky": "^4.2.3",
     "import-fresh": "^3.2.1",
     "mvt": "^4.1.0",
-    "standard": "^14.3.1",
     "turbo-http": "^0.3.2"
   }
 }
