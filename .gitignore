@@ -54,3 +54,6 @@ realtime/gopath/pkg/*
 !realtime/gopath/pkg/.gitkeep
 realtime/gopath/src/*
 !realtime/gopath/src/.gitkeep
+
+bench/package-lock.json
+realtime/package-lock.json
