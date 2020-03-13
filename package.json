@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "axios": "^0.19.2",
-    "get-scrud": "^1.4.4",
+    "get-scrud": "^1.4.5",
     "husky": "^4.2.3",
     "import-fresh": "^3.2.1",
     "mvt": "^4.1.0",
