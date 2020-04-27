@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [7.0.0](https://github.com/doesdev/scrud/compare/6.0.7...7.0.0)
+
+> 27 April 2020
+
+#### Dependencies
+- Update `pg` to version 8 ([breaking](https://github.com/brianc/node-postgres/blob/master/CHANGELOG.md#pg800))
+- Update `quick-lru`
+- Update `husky` (dev dep)
+
+#### General
+- requires Node version 8 or higher (in accordance with `pg`)
+- Remove never realized `realtime` module
+
+#### Benchmarks
+- Update `fastify`
+- Update bench results
+
 ### [6.0.7](https://github.com/doesdev/scrud/compare/6.0.6...6.0.7)
 
 > 3 March 2020
