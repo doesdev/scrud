@@ -1,6 +1,6 @@
 {
   "name": "scrud",
-  "version": "7.0.1",
+  "version": "7.0.2",
   "description": "SCRUD API server, fast, light, capable",
   "engines": {
     "node": ">=8.0.0"
@@ -29,7 +29,7 @@
   "homepage": "http://scrud.doesdev.com",
   "dependencies": {
     "jsonwebtoken": "~8.5.1",
-    "pg": "~8.1.0",
+    "pg": "~8.2.1",
     "quick-lru": "^5.1.0",
     "tiny-params": "~4.0.0"
   },
