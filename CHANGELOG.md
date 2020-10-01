@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [7.0.3](https://github.com/doesdev/scrud/compare/7.0.2...7.0.3)
+
+> 30 September 2020
+
+#### Dependencies
+- update `pg` 8.3.3
+- update `quick-lru` to 5.1.1
+
 ### [7.0.2](https://github.com/doesdev/scrud/compare/7.0.1...7.0.2)
 
 > 26 May 2020
