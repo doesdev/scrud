@@ -54,6 +54,7 @@ let server
 let jsonwebtoken
 let logger
 let pgPool
+let xxhash
 let jwtOpts
 let authTrans
 let pgPrefix = ''
@@ -263,6 +264,12 @@ function start (opts = {}) {
     }
   }
 
+  if (opts.useNotModified) {
+    try {
+      xxhash = require('xxhash-addon')
+    } catch (ex) {}
+  }
+
   return new Promise((resolve, reject) => {
     server = http.createServer(handleRequest)
     if (server.setTimeout) server.setTimeout(opts.timeout || defaultTimeout)
@@ -326,7 +333,7 @@ function handleRequest (req, res) {
   }).catch((err) => fourOhOne(res, err))
 }
 
-function sendData (res, data = null) {
+function sendData (res, data = null, req) {
   if (res.headersSent || res.headerSent) {
     logIt(new Error('Can\'t send data after headers sent'), 'warn')
     return Promise.resolve()
@@ -337,6 +344,19 @@ function sendData (res, data = null) {
     const out = JSON.stringify({ data, error: null })
     const dblLen = (out.length * 2) + 1
     const big = !(dblLen < gzipThreshold || Buffer.byteLength(out) < gzipThreshold)
+
+    if (xxhash) {
+      const hash = new xxhash.XXHash3(0).hash(Buffer.from(out)).toString('hex')
+      res.setHeader('ETag', hash)
+      res.setHeader('Cache-Control', 'public, max-age=0')
+
+      const lastHash = req && req.getHeader('if-none-match')
+      if (lastHash && hash === lastHash) {
+        res.statusCode = 304
+        return res.end()
+      }
+    }
+
     if (!res.useGzip || !big) {
       res.end(out)
       return resolve()
@@ -464,7 +484,7 @@ function actionHandler (req, res, name, action, skipRes) {
   let onErr = rsrc.onError || {} // (req, res, error)
   if (typeof onErr !== 'function') onErr = onErr[action]
 
-  const send = (d) => skipRes ? Promise.resolve(d) : sendData(res, d)
+  const send = (d) => skipRes ? Promise.resolve(d) : sendData(res, d, req)
   const finish = (d) => bs ? bs(req, res, d).then(send) : send(d)
   const run = () => bq ? bq(req, res).then(act).then(finish) : act().then(finish)
   const handleErr = (e) => {

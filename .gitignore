@@ -57,3 +57,5 @@ realtime/gopath/src/*
 
 bench/package-lock.json
 realtime/package-lock.json
+
+tmp.js
