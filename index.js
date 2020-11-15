@@ -289,8 +289,7 @@ function shutdown () {
 function handleRequest (req, res) {
   const getBody = getBodyParser(req)
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
-  const headers = (turbo ? req.getAllHeaders() : req.headers) || {}
-  const header = (k) => turbo ? headers.get(k) : headers[k]
+  const header = (k) => turbo ? req.getHeader(k) : req.headers[k]
 
   const origin = header('origin')
   if (origin) {
@@ -350,7 +349,8 @@ function sendData (res, data = null, req) {
       res.setHeader('ETag', hash)
       res.setHeader('Cache-Control', 'public, max-age=0')
 
-      const lastHash = req && req.getHeader('if-none-match')
+      const header = (k) => turbo ? req.getHeader(k) : req.headers[k]
+      const lastHash = req && header('if-none-match')
       if (lastHash && hash === lastHash) {
         res.statusCode = 304
         return res.end()
