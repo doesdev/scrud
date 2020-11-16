@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [7.1.0](https://github.com/doesdev/scrud/compare/7.0.4...7.1.0)
+
+> 15 November 2020
+
+#### Features
+- add `useNotModified` option, hash the response and return 304 if matched
+
+#### Dependencies
+- update `pg` to 8.5.1
+
+#### Docs
+- document new `useNotModified` option
+- fix description of `registerAPIs` option
+
 ### [7.0.4](https://github.com/doesdev/scrud/compare/7.0.3...7.0.4)
 
 > 5 November 2020

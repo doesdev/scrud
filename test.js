@@ -35,24 +35,23 @@ Object.assign(opts, require('./../_secrets/scrud/config.json'))
 
 const config = {
   http: { port: 8092, turbo: false },
-  turbo: { port: 8093, turbo: true }
+  turbo: { port: 8093, turbo: true },
+  304: { port: 8094, useNotModified: true },
+  '304 + turbo': { port: 8095, turbo: true, useNotModified: true }
 }
-const ports = { http: config.http.port, turbo: config.turbo.port }
+
+const ports = Object.fromEntries(Object.entries(config).map(([k, v]) => {
+  return [k, v.port]
+}))
 
 test.before(async () => {
-  config.http.scrud = requireFresh(path.resolve(__dirname, 'index.js'))
-  config.turbo.scrud = requireFresh(path.resolve(__dirname, 'index.js'))
-
-  const optsHttp = Object.assign({}, opts, config.http)
-  const optsTurbo = Object.assign({}, opts, config.turbo)
-  await config.http.scrud.start(optsHttp)
-  await config.turbo.scrud.start(optsTurbo)
-
-  config.http.jwt = await config.http.scrud.genToken({ some: 'stuffs' })
-  config.turbo.jwt = await config.turbo.scrud.genToken({ some: 'stuffs' })
-
-  config.http.apiCall = getScrud(Object.assign({}, apiOpts, config.http))
-  config.turbo.apiCall = getScrud(Object.assign({}, apiOpts, config.turbo))
+  await Promise.all(Object.entries(config).map(async ([k, instance]) => {
+    instance.scrud = requireFresh(path.resolve(__dirname, 'index.js'))
+    const instanceOpts = Object.assign({}, opts, instance)
+    await instance.scrud.start(instanceOpts)
+    instance.jwt = await instance.scrud.genToken({ some: 'stuffs' })
+    instance.apiCall = getScrud(Object.assign({}, apiOpts, instance))
+  }))
 })
 
 test.after(() => {
@@ -60,20 +59,20 @@ test.after(() => {
   config.turbo.scrud.shutdown()
 })
 
-const getConfig = (turbo) => {
-  const configKey = turbo ? 'turbo' : 'http'
+const getConfig = (configKey) => {
   const { scrud, port, apiCall, jwt } = config[configKey]
   const { sendData } = scrud
   if (port !== ports[configKey]) throw new Error('Ports not matching')
   return { scrud, port, apiCall, jwt, sendData }
 }
 
-for (const turbo of [false, true]) {
+for (const key of Object.keys(config)) {
+  const pre = `${key}: `
+  const use304 = key.indexOf('304') !== -1
   let id
-  const pre = turbo ? 'turbo: ' : ''
 
   test(`${pre}CREATE`, async (assert) => {
-    const { apiCall } = getConfig(turbo)
+    const { apiCall } = getConfig(key)
     // create first so that we can expect data in other actions
     const c = await apiCall('member', 'create', postBody)
     id = c.id
@@ -81,30 +80,25 @@ for (const turbo of [false, true]) {
   })
 
   test(`${pre}SEARCH`, async (assert) => {
-    const { apiCall } = getConfig(turbo)
+    const { apiCall } = getConfig(key)
     const s = await apiCall('member', 'search', { first: 'andrew' })
     assert.true(Array.isArray(s) && s.length > 0)
   })
 
   test(`${pre}READ`, async (assert) => {
-    const { apiCall } = getConfig(turbo)
+    const { apiCall } = getConfig(key)
     const r = await apiCall('member', 'read', id)
     assert.is(r.zip, '37601')
   })
 
   test(`${pre}UPDATE`, async (assert) => {
-    const { apiCall } = getConfig(turbo)
+    const { apiCall } = getConfig(key)
     const u = await apiCall('member', 'update', id, putBody)
     assert.is(u.zip, '37615')
   })
 
-  test(`${pre}DELETE`, async (assert) => {
-    const { apiCall } = getConfig(turbo)
-    await assert.notThrowsAsync(() => apiCall('member', 'delete', id))
-  })
-
   test(`${pre}[:resource].beforeSend works`, async (assert) => {
-    const { scrud, apiCall } = getConfig(turbo)
+    const { scrud, apiCall } = getConfig(key)
     const { member } = scrud.resources
     const sendIt = 'hey dair'
 
@@ -118,7 +112,7 @@ for (const turbo of [false, true]) {
   })
 
   test(`${pre}[:resource].beforeQuery works`, async (assert) => {
-    const { scrud, apiCall } = getConfig(turbo)
+    const { scrud, apiCall } = getConfig(key)
     const { member } = scrud.resources
     const sendIt = 'hey dair'
 
@@ -135,7 +129,7 @@ for (const turbo of [false, true]) {
 
   test(`${pre}[:resource].onError works`, async (assert) => {
     let error
-    const { scrud, apiCall } = getConfig(turbo)
+    const { scrud, apiCall } = getConfig(key)
     const { sendData } = scrud
     const onError = (req, res, err) => {
       error = err.message
@@ -149,7 +143,7 @@ for (const turbo of [false, true]) {
   })
 
   test(`${pre}[:resource].beforeSend[:action] works`, async (assert) => {
-    const { scrud, apiCall } = getConfig(turbo)
+    const { scrud, apiCall } = getConfig(key)
     const { member } = scrud.resources
     const sendIt = 'hey dair'
 
@@ -163,7 +157,7 @@ for (const turbo of [false, true]) {
   })
 
   test(`${pre}[:resource].beforeQuery[:action] works`, async (assert) => {
-    const { scrud, apiCall } = getConfig(turbo)
+    const { scrud, apiCall } = getConfig(key)
     const { member } = scrud.resources
     const sendIt = 'hey dair'
 
@@ -182,7 +176,7 @@ for (const turbo of [false, true]) {
 
   test(`${pre}[:resource].onError[:action] works`, async (assert) => {
     let error
-    const { scrud, apiCall } = getConfig(turbo)
+    const { scrud, apiCall } = getConfig(key)
     const { sendData } = scrud
     const onError = {}
 
@@ -197,8 +191,24 @@ for (const turbo of [false, true]) {
     assert.is(error, 'function scrud_nopgfunc_read(unknown) does not exist')
   })
 
+  use304 && test(`${pre}not modified returns 304`, async (assert) => {
+    const { port, jwt } = getConfig(key)
+    const url = `http://localhost:${port}${basePath}/member/${id}`
+    const headers = { Authorization: `Bearer ${jwt}` }
+    const validateStatus = (code) => code === 200 || code === 304
+    const reqOpts = { method: 'GET', url, headers, validateStatus }
+
+    const fresh = await axios(reqOpts)
+    const { status: initStatus, headers: { etag } } = fresh
+    assert.is(initStatus, 200)
+
+    headers['if-none-match'] = etag
+    const cached = await axios(reqOpts)
+    assert.is(cached.status, 304)
+  })
+
   test(`${pre}missing resource id returns 404`, async (assert) => {
-    const { port, jwt } = getConfig(turbo)
+    const { port, jwt } = getConfig(key)
     const url = `http://localhost:${port}${basePath}/member/`
     const headers = { Authorization: `Bearer ${jwt}` }
     try {
@@ -210,7 +220,7 @@ for (const turbo of [false, true]) {
   })
 
   test(`${pre}bad JSON body returns error`, async (assert) => {
-    const { port, jwt } = getConfig(turbo)
+    const { port, jwt } = getConfig(key)
     const url = `http://localhost:${port}${basePath}/member/${id}`
     const headers = { Authorization: `Bearer ${jwt}` }
     try {
@@ -222,12 +232,12 @@ for (const turbo of [false, true]) {
   })
 
   test(`${pre}register throws with no name`, async (assert) => {
-    const { scrud } = getConfig(turbo)
+    const { scrud } = getConfig(key)
     await assert.throws(scrud.register, Error)
   })
 
   test(`${pre}register returns resource object`, async (assert) => {
-    const { scrud } = getConfig(turbo)
+    const { scrud } = getConfig(key)
     const resource = scrud.register('profile')
     assert.truthy(resource, 'resource is defined')
     const hasName = Object.prototype.hasOwnProperty.call(resource, 'name')
@@ -236,7 +246,7 @@ for (const turbo of [false, true]) {
   })
 
   test(`${pre}exported resource DB helpers work as expected`, async (assert) => {
-    const { scrud } = getConfig(turbo)
+    const { scrud } = getConfig(key)
     const locId = (await scrud.insert('member', { params: { zip: 37615 } })).id
     assert.is((await scrud.findAll('member', { params: { id: locId } }))[0].zip, '37615')
     await assert.notThrowsAsync(() => scrud.save('member', { id: locId, params: { zip: '37610' } }))
@@ -245,7 +255,7 @@ for (const turbo of [false, true]) {
   })
 
   test(`${pre}exported SCRUD helpers work as expected`, async (assert) => {
-    const { scrud } = getConfig(turbo)
+    const { scrud } = getConfig(key)
     const locId = (await scrud.create('member', { params: { zip: 37615 } })).id
     assert.is((await scrud.search('member', { params: { id: locId } }))[0].zip, '37615')
     await assert.notThrowsAsync(() => scrud.update('member', { id: locId, params: { zip: 37610 } }))
@@ -254,7 +264,7 @@ for (const turbo of [false, true]) {
   })
 
   test(`${pre}basePth and path edge cases are handled properly`, async (assert) => {
-    const { scrud, port, jwt, sendData } = getConfig(turbo)
+    const { scrud, port, jwt, sendData } = getConfig(key)
     const hdl = (req, res) => Promise.resolve(sendData(res, 'test'))
     const handlers = { search: hdl, create: hdl, read: hdl, update: hdl, delete: hdl }
     scrud.register('api', handlers)
@@ -269,5 +279,10 @@ for (const turbo of [false, true]) {
     const enc = encodeURIComponent('?a=b&c[]=._*j&d=1/1/18&e=f?k')
     res = await axios(`http://localhost:${port}${basePath}/api${enc} `, { headers })
     assert.is(res.headers.scrud, 'api:search')
+  })
+
+  test(`${pre}DELETE`, async (assert) => {
+    const { apiCall } = getConfig(key)
+    await assert.notThrowsAsync(() => apiCall('member', 'delete', id))
   })
 }

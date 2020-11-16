@@ -54,6 +54,7 @@ let server
 let jsonwebtoken
 let logger
 let pgPool
+let xxhash
 let jwtOpts
 let authTrans
 let pgPrefix = ''
@@ -147,6 +148,7 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
     }
     if (body.length > maxBodyBytes) return reject(new Error('Body too large'))
   }
+
   const parse = () => {
     try {
       resolve(body ? JSON.parse(body) : {})
@@ -263,6 +265,14 @@ function start (opts = {}) {
     }
   }
 
+  if (opts.useNotModified) {
+    try {
+      xxhash = require('hash-wasm').xxhash64
+    } catch (ex) {
+      logIt(ex, 'warn')
+    }
+  }
+
   return new Promise((resolve, reject) => {
     server = http.createServer(handleRequest)
     if (server.setTimeout) server.setTimeout(opts.timeout || defaultTimeout)
@@ -282,8 +292,7 @@ function shutdown () {
 function handleRequest (req, res) {
   const getBody = getBodyParser(req)
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
-  const headers = (turbo ? req.getAllHeaders() : req.headers) || {}
-  const header = (k) => turbo ? headers.get(k) : headers[k]
+  const header = (k) => turbo ? req.getHeader(k) : req.headers[k]
 
   const origin = header('origin')
   if (origin) {
@@ -326,24 +335,43 @@ function handleRequest (req, res) {
   }).catch((err) => fourOhOne(res, err))
 }
 
-function sendData (res, data = null) {
+async function sendData (res, data = null, req) {
   if (res.headersSent || res.headerSent) {
     logIt(new Error('Can\'t send data after headers sent'), 'warn')
     return Promise.resolve()
   }
 
+  const out = Buffer.from(JSON.stringify({ data, error: null }), 'utf8')
+
+  if (xxhash && data) {
+    try {
+      const hash = await xxhash(out)
+      res.setHeader('ETag', hash)
+      res.setHeader('Cache-Control', 'public, max-age=0')
+
+      const header = (k) => turbo ? req.getHeader(k) : req.headers[k]
+      const lastHash = req && header('if-none-match')
+      if (lastHash && hash === lastHash) {
+        res.statusCode = 304
+        return res.end()
+      }
+    } catch (ex) {
+      logIt(ex, 'fatal')
+    }
+  }
+
   res.statusCode = 200
+
   return new Promise((resolve, reject) => {
-    const out = JSON.stringify({ data, error: null })
-    const dblLen = (out.length * 2) + 1
-    const big = !(dblLen < gzipThreshold || Buffer.byteLength(out) < gzipThreshold)
+    const big = out.length > gzipThreshold
+
     if (!res.useGzip || !big) {
       res.end(out)
       return resolve()
     }
 
     res.setHeader('Content-Encoding', 'gzip')
-    zlib.gzip(Buffer.from(out), (err, zipd) => {
+    zlib.gzip(out, (err, zipd) => {
       if (err) return reject(sendErr(res, err))
       res.end(zipd)
       return resolve()
@@ -464,7 +492,7 @@ function actionHandler (req, res, name, action, skipRes) {
   let onErr = rsrc.onError || {} // (req, res, error)
   if (typeof onErr !== 'function') onErr = onErr[action]
 
-  const send = (d) => skipRes ? Promise.resolve(d) : sendData(res, d)
+  const send = (d) => skipRes ? Promise.resolve(d) : sendData(res, d, req)
   const finish = (d) => bs ? bs(req, res, d).then(send) : send(d)
   const run = () => bq ? bq(req, res).then(act).then(finish) : act().then(finish)
   const handleErr = (e) => {

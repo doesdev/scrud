@@ -136,7 +136,7 @@ Set global options and start API server
 
 ***Arguments:***
 - **options** - `Object` - *required*
-  - **registerAPIs** - *optional* - base path for APIs (i.e. `https://host.com/${basePath}/resource`)
+  - **registerAPIs** - *optional* - mass API registration, alternative to `scrud.register`
     - type: `Array` of either `Strings` (resource name) or `Object` of type `{ name, handlers }`
     - default: `null`
   - **basePath** - *optional* - base path for APIs (i.e. `https://host.com/${basePath}/resource`)
@@ -160,7 +160,11 @@ Set global options and start API server
   - **getIp** - *optional* - should client IP be added to request object
     - type: `Boolean`
     - default: `false`
-  - **turbo** - *optional* - if turbo is installed as peer-dependency use it (see [pr#16](https://github.com/doesdev/scrud/pull/16))
+  - **turbo** - *optional* - if [`turbo`](https://github.com/mafintosh/turbo-http) is installed as peer-dependency use it (see [pr#16](https://github.com/doesdev/scrud/pull/16))
+    - type: `Boolean`
+    - default: `false`
+  - **useNotModified** - *optional* - if [`hash-wasm`](https://github.com/Daninet/hash-wasm) is installed as peer-dependency use it to calculate hash of JSON
+  body and send 304 if matched
     - type: `Boolean`
     - default: `false`
   - **authTrans** - *optional* - Synchronous function that transforms the passed in auth object before proceeding with processing
@@ -172,7 +176,7 @@ Set global options and start API server
 
 ## generic helpers
 - `shutdown`() - close server and end open database connections
-- `sendData`(response, data) - send response data to client
+- `sendData`(response, data, request) - send response data to client
 - `sendErr`(response, error, code) - send error to client  
 - `fourOhOne`(response, error) - send 401 (unauthorized) error to client  
 - `fourOhFour`(response, error) - send 404 (not found) error to client  
