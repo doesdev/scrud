@@ -4,6 +4,8 @@
 const tinyParams = require('tiny-params')
 const zlib = require('zlib')
 const Lru = require('quick-lru')
+const { compactify } = require('./lib/compactify')
+
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
 const checkId = { read: true, update: true, delete: true }
@@ -61,6 +63,7 @@ let pgPrefix = ''
 let base = '/'
 let baseChars = base.length
 let maxBodyBytes = 1e6
+let enableCompaction = false
 const resources = {}
 const allowOrigins = {}
 let gzipThreshold = 1000
@@ -250,6 +253,7 @@ function start (opts = {}) {
   if (opts.setScrudHeader) setScrudHeader = true
   if (opts.authTrans) authTrans = opts.authTrans
   if (opts.gzipThreshold) gzipThreshold = opts.gzipThreshold
+  if (opts.enableCompaction) enableCompaction = opts.enableCompaction
   if (Array.isArray(opts.allowOrigins)) {
     opts.allowOrigins.forEach((k) => { allowOrigins[k] = true })
   }
@@ -341,7 +345,14 @@ async function sendData (res, data = null, req) {
     return Promise.resolve()
   }
 
-  const out = Buffer.from(JSON.stringify({ data, error: null }), 'utf8')
+  let shape
+  if (enableCompaction) {
+    const compacted = compactify(data)
+    data = compacted.data
+    shape = compacted.shape
+  }
+
+  const out = Buffer.from(JSON.stringify({ data, shape, error: null }), 'utf8')
 
   if (xxhash && data) {
     try {
