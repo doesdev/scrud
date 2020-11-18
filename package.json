@@ -1,13 +1,14 @@
 {
   "name": "scrud",
-  "version": "8.0.0-alpha.0",
+  "version": "8.0.0-alpha.1",
   "description": "SCRUD API server, fast, light, capable",
   "engines": {
     "node": ">=8.0.0"
   },
   "main": "index.js",
   "files": [
-    "index.js"
+    "index.js",
+    "lib/"
   ],
   "scripts": {
     "test": "mvt --verbose"
