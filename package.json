@@ -34,11 +34,11 @@
     "tiny-params": "~4.0.0"
   },
   "devDependencies": {
-    "axios": "^0.21.0",
-    "get-scrud": "^1.5.1",
-    "hash-wasm": "^4.4.0",
-    "husky": "^4.3.0",
-    "import-fresh": "^3.2.2",
+    "axios": "^0.21.1",
+    "get-scrud": "^1.5.2",
+    "hash-wasm": "^4.5.0",
+    "husky": "^5.1.3",
+    "import-fresh": "^3.3.0",
     "mvt": "^4.1.1",
     "turbo-http": "^0.3.2"
   }
