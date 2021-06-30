@@ -1,10 +1,15 @@
 'use strict'
 
+require('dotenv').config()
+
 const test = require('mvt')
+const { setup, teardown, pgConfig } = require('./_db')
 const requireFresh = require('import-fresh')
 const axios = require('axios')
 const path = require('path')
 const getScrud = require('get-scrud')
+
+const scrudPath = path.resolve(__dirname, '..', 'index.js')
 const allowOrigins = ['localhost']
 const postBody = {
   first: 'andrew',
@@ -12,6 +17,7 @@ const postBody = {
   zip: 37601,
   email: 'andrew@audioinhd.com'
 }
+
 const basePath = '/api'
 const apiOpts = { host: 'localhost', basePath, timeout: '10s' }
 const putBody = { zip: 37615 }
@@ -23,6 +29,7 @@ const opts = {
   logger,
   setScrudHeader: true,
   registerAPIs: ['member'],
+  postgres: pgConfig,
   jsonwebtoken: {
     secret: 'SomeRandomAstString',
     algorithm: 'HS256',
@@ -31,7 +38,6 @@ const opts = {
     expiresIn: 1800
   }
 }
-Object.assign(opts, require('./../_secrets/scrud/config.json'))
 
 const config = {
   http: { port: 8092, turbo: false },
@@ -45,8 +51,10 @@ const ports = Object.fromEntries(Object.entries(config).map(([k, v]) => {
 }))
 
 test.before(async () => {
+  await setup()
+
   await Promise.all(Object.entries(config).map(async ([k, instance]) => {
-    instance.scrud = requireFresh(path.resolve(__dirname, 'index.js'))
+    instance.scrud = requireFresh(scrudPath)
     const instanceOpts = Object.assign({}, opts, instance)
     await instance.scrud.start(instanceOpts)
     instance.jwt = await instance.scrud.genToken({ some: 'stuffs' })
@@ -54,9 +62,10 @@ test.before(async () => {
   }))
 })
 
-test.after(() => {
+test.after(async () => {
   config.http.scrud.shutdown()
   config.turbo.scrud.shutdown()
+  await teardown()
 })
 
 const getConfig = (configKey) => {

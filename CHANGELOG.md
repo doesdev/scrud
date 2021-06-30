@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [7.2.0](https://github.com/doesdev/scrud/compare/7.1.0...7.2.0)
+
+> 30 June 2021
+
+#### Dependencies
+- update `pg` to 8.6.0
+
+#### Docs
+- add `CONTRIBUTING.md`
+
+#### Tests
+- handle DB setup and teardown within the tests
+
 ### [7.1.0](https://github.com/doesdev/scrud/compare/7.0.4...7.1.0)
 
 > 15 November 2020

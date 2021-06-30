@@ -38,6 +38,7 @@ jspm_packages
 .node_repl_history
 
 # ignore secrets and configs that might contain secrets
+.env
 secrets.json
 _secrets.json
 config.json
