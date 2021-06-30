@@ -137,18 +137,28 @@ for (const key of Object.keys(config)) {
   })
 
   test(`${pre}[:resource].onError works`, async (assert) => {
-    let error
+    const errMsg = 'Nopes, no such function'
     const { scrud, apiCall } = getConfig(key)
     const { sendData } = scrud
-    const onError = (req, res, err) => {
-      error = err.message
-      return sendData(res, { data: error })
-    }
+    const onError = (req, res, err) => sendData(res, { data: errMsg })
 
     scrud.register('nopgfunc', { onError })
-    await apiCall('nopgfunc', 'read', id)
+    const { data: result } = await apiCall('nopgfunc', 'read', id)
 
-    assert.is(error, 'function scrud_nopgfunc_read(unknown) does not exist')
+    assert.is(result, errMsg)
+  })
+
+  test(`${pre}[:resource].onError works with custom handler`, async (assert) => {
+    const errMsg = 'Nopes, no such function'
+    const { scrud, apiCall } = getConfig(key)
+    const { sendData } = scrud
+    const read = () => { throw new Error('Eff naw') }
+    const onError = (req, res, err) => sendData(res, { data: errMsg })
+
+    scrud.register('nopgfunc', { read, onError })
+    const { data: result } = await apiCall('nopgfunc', 'read', id)
+
+    assert.is(result, errMsg)
   })
 
   test(`${pre}[:resource].beforeSend[:action] works`, async (assert) => {
@@ -184,20 +194,15 @@ for (const key of Object.keys(config)) {
   })
 
   test(`${pre}[:resource].onError[:action] works`, async (assert) => {
-    let error
+    const errMsg = 'Nopes, no such function'
     const { scrud, apiCall } = getConfig(key)
     const { sendData } = scrud
-    const onError = {}
-
-    onError.read = (req, res, err) => {
-      error = err.message
-      return sendData(res, { date: error })
-    }
+    const onError = { read: (req, res, err) => sendData(res, { data: errMsg }) }
 
     scrud.register('nopgfunc', { onError })
-    await apiCall('nopgfunc', 'read', id)
+    const { data: result } = await apiCall('nopgfunc', 'read', id)
 
-    assert.is(error, 'function scrud_nopgfunc_read(unknown) does not exist')
+    assert.is(result, errMsg)
   })
 
   use304 && test(`${pre}not modified returns 304`, async (assert) => {

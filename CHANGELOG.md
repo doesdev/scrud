@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [7.2.1](https://github.com/doesdev/scrud/compare/7.2.0...7.2.1)
+
+> 30 June 2021
+
+#### Fixes
+- fix bug that would exclude action custom handlers from `onError` catching them
+
 ### [7.2.0](https://github.com/doesdev/scrud/compare/7.1.0...7.2.0)
 
 > 30 June 2021

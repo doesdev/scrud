@@ -478,9 +478,23 @@ function actionHandler (req, res, name, action, skipRes) {
   let bq = rsrc.beforeQuery || {} // (req, res)
   if (typeof bq !== 'function') bq = bq[action]
 
-  const act = () => rsrc[action]
-    ? rsrc[action](req, res, name, action, skipRes)
-    : handlers[action](name, req)
+  // prep onError handler
+  let onErr = rsrc.onError || {} // (req, res, error)
+  if (typeof onErr !== 'function') onErr = onErr[action]
+
+  const handleErr = (e) => {
+    if (onErr) return onErr(req, res, e)
+    return skipRes ? Promise.reject(e) : sendErr(res, e)
+  }
+
+  const act = () => {
+    if (!rsrc[action]) return handlers[action](name, req).catch(handleErr)
+    try {
+      return rsrc[action](req, res, name, action, skipRes).catch(handleErr)
+    } catch (ex) {
+      return handleErr(ex)
+    }
+  }
 
   if (rsrc[action]) return bq ? bq(req, res).then(act) : act()
 
@@ -488,17 +502,9 @@ function actionHandler (req, res, name, action, skipRes) {
   let bs = rsrc.beforeSend || {} // (req, res, data)
   if (typeof bs !== 'function') bs = bs[action]
 
-  // prep onError handler
-  let onErr = rsrc.onError || {} // (req, res, error)
-  if (typeof onErr !== 'function') onErr = onErr[action]
-
   const send = (d) => skipRes ? Promise.resolve(d) : sendData(res, d, req)
   const finish = (d) => bs ? bs(req, res, d).then(send) : send(d)
   const run = () => bq ? bq(req, res).then(act).then(finish) : act().then(finish)
-  const handleErr = (e) => {
-    if (onErr) return onErr(req, res, e)
-    return skipRes ? Promise.reject(e) : sendErr(res, e)
-  }
 
   return run().catch(handleErr)
 }
