@@ -320,7 +320,7 @@ function handleRequest (req, res) {
   const callHandler = () => {
     if (!hasBody[action]) return actionHandler(req, res, name, action)
     return getBody().then((body) => {
-      req.params = Object.assign(body, req.params)
+      req.params = Object.assign({}, body, req.params)
       return actionHandler(req, res, name, action)
     }).catch((e) => sendErr(res, e))
   }

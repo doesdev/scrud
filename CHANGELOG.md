@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [7.3.0](https://github.com/doesdev/scrud/compare/7.2.1...7.3.0)
+
+> 22 September 2021
+
+#### Fixes
+- fix `Cannot convert undefined or null to object` bug
+
+#### Dependencies
+- update `pg` to 8.7.1
+- update several dev deps
+
 ### [7.2.1](https://github.com/doesdev/scrud/compare/7.2.0...7.2.1)
 
 > 30 June 2021
