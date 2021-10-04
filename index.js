@@ -6,9 +6,14 @@ const zlib = require('zlib')
 const Lru = require('quick-lru')
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
+
 const checkId = { read: true, update: true, delete: true }
 const useFirstRecord = { create: true, read: true, update: true }
+const hasBody = { create: true, update: true }
+const isPool = { Pool: true, BoundPool: true }
+
 const firstRecord = (d) => Promise.resolve(d[0])
+
 const noop = () => {}
 const dummyRes = {
   addTrailers: noop,
@@ -24,6 +29,7 @@ const dummyRes = {
   writeContinue: noop,
   writeHead: noop
 }
+
 const scrud = {
   GET: 'search',
   'GET?': 'search',
@@ -33,7 +39,7 @@ const scrud = {
   'PUT/': 'update',
   'DELETE/': 'delete'
 }
-const hasBody = { create: true, update: true }
+
 const wlSign = [
   'algorithm',
   'expiresIn',
@@ -103,11 +109,13 @@ const parseUrl = (req) => {
   return data
 }
 
-const callPgFunc = (name, params, req) => {
+const callPgFunc = (name, params, req, altPgPool) => {
   const q = `SELECT * FROM ${name}($1);`
+  const pool = altPgPool || pgPool
+
   if (!pgPool) return Promise.reject(new Error('No database configured'))
 
-  return pgPool.connect().then((client) => {
+  return pool.connect().then((client) => {
     let released
     const release = (fauxErr) => {
       if (!client || !client.release || released) return
@@ -450,7 +458,13 @@ function authenticate (jwt, opts) {
 
 // helper: handle all resource helpers
 function pgActions (resource, action, req) {
+  const rsrc = resources[resource] || {}
   const { id, params } = req
+
+  let pgConn = rsrc.pg || {}
+  if (!isPool[(pgConn.constructor || {}).name]) pgConn = pgConn[action] || {}
+  if (!isPool[(pgConn.constructor || {}).name]) pgConn = undefined
+
   if (checkId[action]) {
     if (!id && id !== 0) return Promise.reject(new Error('No id passed'))
     if (action === 'read') params.id_array = [id]
@@ -465,8 +479,8 @@ function pgActions (resource, action, req) {
   }
 
   const funcName = `${pgPrefix}${resource}_${action}`
-  if (!useFirstRecord[action]) return callPgFunc(funcName, params, req)
-  return callPgFunc(funcName, params, req).then(firstRecord)
+  if (!useFirstRecord[action]) return callPgFunc(funcName, params, req, pgConn)
+  return callPgFunc(funcName, params, req, pgConn).then(firstRecord)
 }
 
 // default handler for all resource methods
