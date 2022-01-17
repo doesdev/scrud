@@ -128,6 +128,10 @@ async function main () {
       - should return: doesn't matter
       - default: `null`
       - **IMPORTANT:** You need to respond to the client so their request isn't hung
+  - **pg** - `Object` - optional - PG connection specific to resource
+    - **search**, **create**, **read**, **update**, **delete** - *optional*
+      - type: `pg.Pool`
+      - default: `null`
 
 ### scrud.start(options)
 Set global options and start API server

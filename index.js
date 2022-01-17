@@ -113,7 +113,7 @@ const callPgFunc = (name, params, req, altPgPool) => {
   const q = `SELECT * FROM ${name}($1);`
   const pool = altPgPool || pgPool
 
-  if (!pgPool) return Promise.reject(new Error('No database configured'))
+  if (!pool) return Promise.reject(new Error('No database configured'))
 
   return pool.connect().then((client) => {
     let released
