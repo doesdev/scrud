@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [7.4.1](https://github.com/doesdev/scrud/compare/7.4.0...7.4.1)
+
+> 7 April 2022
+
+#### Dependencies
+- update `pg` to 8.7.3
+
 ### [7.4.0](https://github.com/doesdev/scrud/compare/7.3.0...7.4.0)
 
 > 17 January 2022
