@@ -23,7 +23,7 @@
   },
   "homepage": "http://scrud.doesdev.com",
   "dependencies": {
-    "jsonwebtoken": "~8.5.1",
+    "jsonwebtoken": "~9.0.0",
     "pg": "~8.7.3",
     "quick-lru": "^5.1.1",
     "tiny-params": "~4.0.0"
