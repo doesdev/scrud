@@ -40,10 +40,8 @@ const opts = {
 }
 
 const config = {
-  http: { port: 8092, turbo: false },
-  turbo: { port: 8093, turbo: true },
-  304: { port: 8094, useNotModified: true },
-  '304 + turbo': { port: 8095, turbo: true, useNotModified: true }
+  http: { port: 8092 },
+  notModified: { port: 8094, useNotModified: true }
 }
 
 const ports = Object.fromEntries(Object.entries(config).map(([k, v]) => {
@@ -64,7 +62,6 @@ test.before(async () => {
 
 test.after(async () => {
   config.http.scrud.shutdown()
-  config.turbo.scrud.shutdown()
   await teardown()
 })
 
@@ -77,7 +74,7 @@ const getConfig = (configKey) => {
 
 for (const key of Object.keys(config)) {
   const pre = `${key}: `
-  const use304 = key.indexOf('304') !== -1
+  const use304 = key.indexOf('notModified') !== -1
   let id
 
   test(`${pre}CREATE`, async (assert) => {

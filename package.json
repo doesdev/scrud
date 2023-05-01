@@ -1,6 +1,6 @@
 {
   "name": "scrud",
-  "version": "7.4.1",
+  "version": "8.0.0-beta.1",
   "description": "SCRUD API server, fast, light, capable",
   "engines": {
     "node": ">=8.0.0"
@@ -23,18 +23,18 @@
   },
   "homepage": "http://scrud.doesdev.com",
   "dependencies": {
-    "jsonwebtoken": "~8.5.1",
-    "pg": "~8.7.3",
-    "quick-lru": "^5.1.1",
+    "jsonwebtoken": "~9.0.0",
+    "pg": "~8.10.0",
     "tiny-params": "~4.0.0"
   },
   "devDependencies": {
-    "axios": "^0.26.1",
-    "dotenv": "^16.0.0",
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.3",
     "get-scrud": "^1.8.0",
     "hash-wasm": "^4.9.0",
     "import-fresh": "^3.3.0",
     "mvt": "^4.2.1",
-    "turbo-http": "^0.3.2"
-  }
+    "standard": "^17.0.0"
+  },
+  "packageManager": "yarn@3.5.1"
 }

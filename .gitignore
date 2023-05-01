@@ -34,6 +34,15 @@ jspm_packages
 # Optional npm cache directory
 .npm
 
+# yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
 # Optional REPL history
 .node_repl_history
 
@@ -47,14 +56,3 @@ db.json
 _db.json
 database.json
 _database.json
-
-# Anything other than gitkeep in realtime/gopath dirs
-realtime/gopath/bin/*
-!realtime/gopath/bin/.gitkeep
-realtime/gopath/pkg/*
-!realtime/gopath/pkg/.gitkeep
-realtime/gopath/src/*
-!realtime/gopath/src/.gitkeep
-
-bench/package-lock.json
-realtime/package-lock.json

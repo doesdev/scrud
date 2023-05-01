@@ -1,9 +1,8 @@
 'use strict'
 
-// setup
+const http = require('http')
 const tinyParams = require('tiny-params')
 const zlib = require('zlib')
-const Lru = require('quick-lru')
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
 
@@ -52,10 +51,6 @@ const wlSign = [
   'header'
 ]
 
-// LRU cache
-const urlCache = new Lru({ maxSize: 20 })
-
-// globals
 let server
 let jsonwebtoken
 let logger
@@ -72,16 +67,12 @@ const allowOrigins = {}
 let gzipThreshold = 1000
 let getIp
 let setScrudHeader
-let turbo = false
 
-// local helpers
 const logIt = (e, level = 'fatal') => {
   typeof logger === 'function' ? logger(e, level) : console.log(e)
 }
 
 const parseUrl = (req) => {
-  const sig = `${req.method}${req.url}`
-  if (urlCache.has(sig)) return urlCache.get(sig)
   const url = decodeURIComponent(req.url).slice(baseChars)
   const sIdx = url.indexOf('/')
   const qIdx = url.indexOf('?')
@@ -105,7 +96,6 @@ const parseUrl = (req) => {
   const params = tinyParams(req.url)
   const data = { url, name, action, id, params }
 
-  urlCache.set(sig, data)
   return data
 }
 
@@ -166,20 +156,9 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
     }
   }
 
-  if (turbo) {
-    req.ondata = ondata
-    req.onend = parse
-  } else {
-    req.on('data', ondata)
-    req.on('end', parse)
-  }
+  req.on('data', ondata)
+  req.on('end', parse)
 })
-
-const getBodyParser = (req) => {
-  if (!turbo) return () => bodyParse(req)
-  const prom = bodyParse(req)
-  return () => prom
-}
 
 const filterObj = (obj, ary) => {
   const base = {}
@@ -187,7 +166,6 @@ const filterObj = (obj, ary) => {
   return base
 }
 
-// database action handlers
 const handlers = {}
 const find = handlers.read = (rsrc, req) => pgActions(rsrc, 'read', req)
 const findAll = handlers.search = (rsrc, req) => pgActions(rsrc, 'search', req)
@@ -195,7 +173,6 @@ const create = handlers.create = (rsrc, req) => pgActions(rsrc, 'create', req)
 const save = handlers.update = (rsrc, req) => pgActions(rsrc, 'update', req)
 const destroy = handlers.delete = (rsrc, req) => pgActions(rsrc, 'delete', req)
 
-// exports
 module.exports = {
   resources,
   register,
@@ -221,7 +198,6 @@ module.exports = {
   delete: (rsrc, req) => actionHandler(req, null, rsrc, 'delete', true)
 }
 
-// register resource
 function register (name, opts = {}) {
   if (!name) throw new Error('No name specified in register')
   const r = resources[name] = Object.assign({}, opts, { name })
@@ -233,7 +209,6 @@ function register (name, opts = {}) {
   return r
 }
 
-// start server
 function start (opts = {}) {
   if (Array.isArray(opts.registerAPIs)) {
     for (const api of opts.registerAPIs) {
@@ -262,17 +237,6 @@ function start (opts = {}) {
     opts.allowOrigins.forEach((k) => { allowOrigins[k] = true })
   }
 
-  let http = require('http')
-  if (opts.turbo !== false) {
-    try {
-      http = require('turbo-http')
-      turbo = true
-    } catch (ex) {
-      http = require('http')
-      turbo = false
-    }
-  }
-
   if (opts.useNotModified) {
     try {
       xxhash = require('hash-wasm').xxhash64
@@ -296,38 +260,43 @@ function shutdown () {
   if (pgPool && typeof pgPool.end === 'function') pgPool.end()
 }
 
-// request handler
 function handleRequest (req, res) {
-  const getBody = getBodyParser(req)
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
-  const header = (k) => turbo ? req.getHeader(k) : req.headers[k]
+  const header = (k) => req.headers[k]
 
   const origin = header('origin')
+
   if (origin) {
     if (!allowOrigins[origin]) return rejectPreflight(res, origin)
     res.setHeader('Access-Control-Allow-Origin', origin)
   }
+
   if (req.method === 'OPTIONS' && header('access-control-request-method')) {
     return ackPreflight(res, origin, header('access-control-request-headers'))
   }
 
   const { name, action, id, params } = parseUrl(req)
   const resource = resources[name]
+
   if (!resource || !action) return fourOhFour(res)
 
   res.useGzip = (header('accept-encoding') || '').indexOf('gzip') !== -1
+
   if (setScrudHeader) res.setHeader('SCRUD', `${name}:${action}`)
   if (checkId[action]) req.id = id
+
   req.params = params
+
   if (getIp) {
     const connection = req.connection || {}
     req.params.ip = header('x-forwarded-for') || connection.remoteAddress
   }
-  if (!turbo) req.once('error', (err) => sendErr(res, err))
+
+  req.once('error', (err) => sendErr(res, err))
 
   const callHandler = () => {
     if (!hasBody[action]) return actionHandler(req, res, name, action)
-    return getBody().then((body) => {
+    return bodyParse(req).then((body) => {
       req.params = Object.assign({}, body, req.params)
       return actionHandler(req, res, name, action)
     }).catch((e) => sendErr(res, e))
@@ -357,8 +326,7 @@ async function sendData (res, data = null, req) {
       res.setHeader('ETag', hash)
       res.setHeader('Cache-Control', 'public, max-age=0')
 
-      const header = (k) => turbo ? req.getHeader(k) : req.headers[k]
-      const lastHash = req && header('if-none-match')
+      const lastHash = req && req.headers['if-none-match']
       if (lastHash && hash === lastHash) {
         res.statusCode = 304
         return res.end()
@@ -456,7 +424,6 @@ function authenticate (jwt, opts) {
   })
 }
 
-// helper: handle all resource helpers
 function pgActions (resource, action, req) {
   const rsrc = resources[resource] || {}
   const { id, params } = req
@@ -483,16 +450,13 @@ function pgActions (resource, action, req) {
   return callPgFunc(funcName, params, req, pgConn).then(firstRecord)
 }
 
-// default handler for all resource methods
 function actionHandler (req, res, name, action, skipRes) {
   const rsrc = resources[name]
   res = res || dummyRes
 
-  // prep beforeQuery handler
   let bq = rsrc.beforeQuery || {} // (req, res)
   if (typeof bq !== 'function') bq = bq[action]
 
-  // prep onError handler
   let onErr = rsrc.onError || {} // (req, res, error)
   if (typeof onErr !== 'function') onErr = onErr[action]
 

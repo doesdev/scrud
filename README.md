@@ -2,7 +2,7 @@
   <img src="https://github.com/doesdev/scrud/raw/master/assets/scrud-logo.png" alt="SCRUD" width="400" />
 </div>
 
-# scrud [![NPM version](https://badge.fury.io/js/scrud.svg)](https://npmjs.org/package/scrud)   [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)   
+# scrud [![NPM version](https://badge.fury.io/js/scrud.svg)](https://npmjs.org/package/scrud)   [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)
 
 > SCRUD API server, fast, light, capable
 
@@ -29,18 +29,8 @@ Every resource has corresponding SCRUD actions which are expressed in the HTTP m
 # who is it for
 
 - me mostly
-- folks who need a fast and effective resource driven API server
+- folks who need an effective resource driven API server
 - organizations / individuals who like PostgreSQL and need a solid frontend
-
-# is it fast
-
-It is competitively fast. It's neither the fastest thing out there or the slowest, but it strives to be competitive with the fastest of the bunch.
-
-# benchmarks
-
-As always, take benches with a grain of salt. The point is that we care about performance and optimize for it. To see benchmarking details check out the [bench directory](https://github.com/doesdev/scrud/tree/master/bench). The gist is this, all libs return a simple JSON response and the proper content-type headers. Each server is run in their own forked process and gets a warm up run for 3 seconds before we start tracking the results.
-
-![Benchmark](bench/results/read.png)
 
 # install
 
@@ -164,9 +154,6 @@ Set global options and start API server
   - **getIp** - *optional* - should client IP be added to request object
     - type: `Boolean`
     - default: `false`
-  - **turbo** - *optional* - if [`turbo`](https://github.com/mafintosh/turbo-http) is installed as peer-dependency use it (see [pr#16](https://github.com/doesdev/scrud/pull/16))
-    - type: `Boolean`
-    - default: `false`
   - **useNotModified** - *optional* - if [`hash-wasm`](https://github.com/Daninet/hash-wasm) is installed as peer-dependency use it to calculate hash of JSON
   body and send 304 if matched
     - type: `Boolean`
@@ -181,27 +168,27 @@ Set global options and start API server
 ## generic helpers
 - `shutdown`() - close server and end open database connections
 - `sendData`(response, data, request) - send response data to client
-- `sendErr`(response, error, code) - send error to client  
-- `fourOhOne`(response, error) - send 401 (unauthorized) error to client  
-- `fourOhFour`(response, error) - send 404 (not found) error to client  
-- `genToken`(payload) - generate JWT token  
-- `authenticate`(jwt) - authenticate JWT token  
-- `logIt`(error, logLevel) - invoke logger with error and logLevel  
-- `callPgFunc`(functionName, params, request) - call any PG function with single arg  
+- `sendErr`(response, error, code) - send error to client
+- `fourOhOne`(response, error) - send 401 (unauthorized) error to client
+- `fourOhFour`(response, error) - send 404 (not found) error to client
+- `genToken`(payload) - generate JWT token
+- `authenticate`(jwt) - authenticate JWT token
+- `logIt`(error, logLevel) - invoke logger with error and logLevel
+- `callPgFunc`(functionName, params, request) - call any PG function with single arg
 
 ## database action helpers
-- `findAll`(resource, request) - call PG search function for resource  
-- `insert`(resource, request) - call PG create function for resource  
-- `find`(resource, request) - call PG read function for resource  
-- `save`(resource, request) - call PG update function for resource  
-- `destroy`(resource, request) - call PG delete function for resource  
+- `findAll`(resource, request) - call PG search function for resource
+- `insert`(resource, request) - call PG create function for resource
+- `find`(resource, request) - call PG read function for resource
+- `save`(resource, request) - call PG update function for resource
+- `destroy`(resource, request) - call PG delete function for resource
 
 ## scrud helpers
-- `search`(resource, request) - run registered search handler for resource  
-- `create`(resource, request) - run registered create handler for resource  
-- `read`(resource, request) - run registered read handler for resource  
-- `update`(resource, request) - run registered update handler for resource  
-- `delete`(resource, request) - run registered delete handler for resource  
+- `search`(resource, request) - run registered search handler for resource
+- `create`(resource, request) - run registered create handler for resource
+- `read`(resource, request) - run registered read handler for resource
+- `update`(resource, request) - run registered update handler for resource
+- `delete`(resource, request) - run registered delete handler for resource
 
 ## related
 

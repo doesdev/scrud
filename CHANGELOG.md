@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [8.0.0](https://github.com/doesdev/scrud/compare/7.4.1...8.0.0)
+
+> 1 May 2023
+
+#### General
+- Remove gimicky crap
+- Deprecate turbo option
+- Switch to Yarn
+
+#### Dependencies
+- update `pg` from 8.7.3 to 8.10.0
+- update `jsonwebtoken`  from 8.5.1 to 9.0.0
+- remove `quick-lru`
+- update dev deps
+
 ### [7.4.1](https://github.com/doesdev/scrud/compare/7.4.0...7.4.1)
 
 > 7 April 2022
