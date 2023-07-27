@@ -292,6 +292,22 @@ for (const key of Object.keys(config)) {
     assert.is(res.headers.scrud, 'api:search')
   })
 
+  test(`${pre}SEARCH using POST works as expected`, async (assert) => {
+    const { scrud, port, jwt, sendData } = getConfig(key)
+    const hdl = (req, res) => Promise.resolve(sendData(res, req.params))
+    const handlers = { search: hdl, create: hdl, read: hdl, update: hdl, delete: hdl }
+    scrud.register('api', handlers)
+    const headers = { Authorization: `Bearer ${jwt}` }
+
+    const url = `http://localhost:${port}${basePath}/api?search=true`
+    const body = { a: 'b' }
+    const config = { headers }
+    const res = await axios.post(url, body, config)
+
+    assert.is(res.headers.scrud, 'api:search')
+    assert.is(res.data.data.a, 'b')
+  })
+
   test(`${pre}DELETE`, async (assert) => {
     const { apiCall } = getConfig(key)
     await assert.notThrowsAsync(() => apiCall('member', 'delete', id))

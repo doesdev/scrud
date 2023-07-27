@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [9.0.0](https://github.com/doesdev/scrud/compare/8.0.0...9.0.0)
+
+> 26 July 2023
+
+#### General
+- Add SEARCH via POST (indicated by POST where path ends with ?)
+
+#### Dependencies
+- update `pg` from 8.10.0 to 8.11.1
+- update `jsonwebtoken`  from 9.0.0 to 9.0.1
+
 ### [8.0.0](https://github.com/doesdev/scrud/compare/7.4.1...8.0.0)
 
 > 1 May 2023

@@ -8,7 +8,7 @@ const defaultTimeout = 120000
 
 const checkId = { read: true, update: true, delete: true }
 const useFirstRecord = { create: true, read: true, update: true }
-const hasBody = { create: true, update: true }
+const hasBody = { POST: true, PUT: true }
 const isPool = { Pool: true, BoundPool: true }
 
 const firstRecord = (d) => Promise.resolve(d[0])
@@ -34,6 +34,7 @@ const scrud = {
   'GET?': 'search',
   POST: 'create',
   'POST/': 'create',
+  'POST?': 'search',
   'GET/': 'read',
   'PUT/': 'update',
   'DELETE/': 'delete'
@@ -295,7 +296,8 @@ function handleRequest (req, res) {
   req.once('error', (err) => sendErr(res, err))
 
   const callHandler = () => {
-    if (!hasBody[action]) return actionHandler(req, res, name, action)
+    if (!hasBody[req.method]) return actionHandler(req, res, name, action)
+
     return bodyParse(req).then((body) => {
       req.params = Object.assign({}, body, req.params)
       return actionHandler(req, res, name, action)
