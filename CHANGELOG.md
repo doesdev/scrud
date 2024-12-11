@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [10.0.0](https://github.com/doesdev/scrud/compare/9.0.0...10.0.0)
+
+> 11 December 2024
+
+#### General
+- Change from CommonJS to ES Module
+
+#### Dependencies
+- update `pg` from 8.11.1 to 8.13.1
+- update `jsonwebtoken`  from 9.0.1 to 9.0.2
+
 ### [9.0.0](https://github.com/doesdev/scrud/compare/8.0.0...9.0.0)
 
 > 26 July 2023

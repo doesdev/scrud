@@ -1,8 +1,7 @@
-'use strict'
+import http from 'node:http'
+import zlib from 'node:zlib'
+import tinyParams from 'tiny-params'
 
-const http = require('http')
-const tinyParams = require('tiny-params')
-const zlib = require('zlib')
 const port = process.env.PORT || process.env.port || 8091
 const defaultTimeout = 120000
 
@@ -173,8 +172,13 @@ const findAll = handlers.search = (rsrc, req) => pgActions(rsrc, 'search', req)
 const create = handlers.create = (rsrc, req) => pgActions(rsrc, 'create', req)
 const save = handlers.update = (rsrc, req) => pgActions(rsrc, 'update', req)
 const destroy = handlers.delete = (rsrc, req) => pgActions(rsrc, 'delete', req)
+const aliasRead = (rsrc, req) => actionHandler(req, null, rsrc, 'read', true)
+const aliasCreate = (rsrc, req) => actionHandler(req, null, rsrc, 'create', true)
+const aliasSearch = (rsrc, req) => actionHandler(req, null, rsrc, 'search', true)
+const aliasUpdate = (rsrc, req) => actionHandler(req, null, rsrc, 'update', true)
+const aliasDelete = (rsrc, req) => actionHandler(req, null, rsrc, 'delete', true)
 
-module.exports = {
+export {
   resources,
   register,
   start,
@@ -188,15 +192,15 @@ module.exports = {
   authenticate,
   find,
   findAll,
-  insert: create,
+  create as insert,
   save,
   destroy,
   callPgFunc,
-  read: (rsrc, req) => actionHandler(req, null, rsrc, 'read', true),
-  create: (rsrc, req) => actionHandler(req, null, rsrc, 'create', true),
-  search: (rsrc, req) => actionHandler(req, null, rsrc, 'search', true),
-  update: (rsrc, req) => actionHandler(req, null, rsrc, 'update', true),
-  delete: (rsrc, req) => actionHandler(req, null, rsrc, 'delete', true)
+  aliasRead as read,
+  aliasCreate as create,
+  aliasSearch as search,
+  aliasUpdate as update,
+  aliasDelete as delete
 }
 
 function register (name, opts = {}) {
@@ -210,7 +214,7 @@ function register (name, opts = {}) {
   return r
 }
 
-function start (opts = {}) {
+async function start (opts = {}) {
   if (Array.isArray(opts.registerAPIs)) {
     for (const api of opts.registerAPIs) {
       if (typeof api === 'string') register(api)
@@ -222,7 +226,7 @@ function start (opts = {}) {
   if (opts.namespace) pgPrefix = `${opts.namespace.toLowerCase()}_`
   if (opts.maxBodyBytes) maxBodyBytes = opts.maxBodyBytes
   if (opts.jsonwebtoken) {
-    jsonwebtoken = require('jsonwebtoken')
+    jsonwebtoken = (await import('jsonwebtoken')).default
     jwtOpts = opts.jsonwebtoken
   }
   if (opts.logger) logger = opts.logger
@@ -240,19 +244,21 @@ function start (opts = {}) {
 
   if (opts.useNotModified) {
     try {
-      xxhash = require('hash-wasm').xxhash64
+      const hashWasm = await import('hash-wasm')
+      xxhash = hashWasm.xxhash64
     } catch (ex) {
       logIt(ex, 'warn')
     }
   }
 
-  return new Promise((resolve, reject) => {
-    server = http.createServer(handleRequest)
-    if (server.setTimeout) server.setTimeout(opts.timeout || defaultTimeout)
-    server.listen(opts.port || port)
-    if (opts.postgres) pgPool = new (require('pg')).Pool(opts.postgres)
-    return resolve(server)
-  })
+  server = http.createServer(handleRequest)
+  if (server.setTimeout) server.setTimeout(opts.timeout || defaultTimeout)
+  server.listen(opts.port || port)
+  if (opts.postgres) {
+    const pg = (await import('pg')).default
+    pgPool = new pg.Pool(opts.postgres)
+  }
+  return server
 }
 
 function shutdown () {
@@ -485,6 +491,5 @@ function actionHandler (req, res, name, action, skipRes) {
   const send = (d) => skipRes ? Promise.resolve(d) : sendData(res, d, req)
   const finish = (d) => bs ? bs(req, res, d).then(send) : send(d)
   const run = () => bq ? bq(req, res).then(act).then(finish) : act().then(finish)
-
   return run().catch(handleErr)
 }

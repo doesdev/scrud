@@ -1,13 +1,14 @@
-'use strict'
+import 'dotenv/config'
+import test from 'mvt'
+import { setup, teardown, pgConfig } from './_db.js'
+import requireFresh from 'import-fresh'
+import axios from 'axios'
+import path from 'node:path'
+import getScrud from 'get-scrud'
+import { fileURLToPath } from 'url'
 
-require('dotenv').config()
-
-const test = require('mvt')
-const { setup, teardown, pgConfig } = require('./_db')
-const requireFresh = require('import-fresh')
-const axios = require('axios')
-const path = require('path')
-const getScrud = require('get-scrud')
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const scrudPath = path.resolve(__dirname, '..', 'index.js')
 const allowOrigins = ['localhost']

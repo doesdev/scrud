@@ -1,7 +1,7 @@
-'use strict'
+import pg from 'pg'
+import { setupDatabase } from './_schema.js'
 
-const { Client } = require('pg')
-const { setupDatabase } = require('./_schema')
+const { Client } = pg
 const password = process.env.TEST_USER_PASSWORD || 'insecure_password'
 const pgConfig = { database: 'scrud_test', user: 'scrud_user', password }
 
@@ -60,4 +60,4 @@ const teardown = async () => {
   await client.end()
 }
 
-module.exports = { setup, teardown, pgConfig }
+export { setup, teardown, pgConfig }

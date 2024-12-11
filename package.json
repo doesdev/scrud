@@ -1,16 +1,18 @@
 {
   "name": "scrud",
-  "version": "9.0.0",
+  "version": "10.0.0",
   "description": "SCRUD API server, fast, light, capable",
   "engines": {
     "node": ">=8.0.0"
   },
+  "type": "module",
   "main": "index.js",
   "files": [
     "index.js"
   ],
   "scripts": {
-    "test": "mvt --verbose"
+    "test": "mvt --verbose",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -23,18 +25,19 @@
   },
   "homepage": "http://scrud.doesdev.com",
   "dependencies": {
-    "jsonwebtoken": "~9.0.1",
-    "pg": "~8.11.1",
+    "jsonwebtoken": "~9.0.2",
+    "pg": "~8.13.1",
     "tiny-params": "~4.0.0"
   },
   "devDependencies": {
-    "axios": "^1.4.0",
-    "dotenv": "^16.3.1",
-    "get-scrud": "^1.8.0",
-    "hash-wasm": "^4.9.0",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "get-scrud": "^4.0.0",
+    "hash-wasm": "^4.12.0",
+    "husky": "^9.1.7",
     "import-fresh": "^3.3.0",
     "mvt": "^4.2.1",
-    "standard": "^17.1.0"
+    "standard": "^17.1.2"
   },
   "packageManager": "yarn@3.5.1"
 }

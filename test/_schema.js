@@ -1,6 +1,7 @@
-'use strict'
+import pg from 'pg'
 
-const { Client } = require('pg')
+const { Client } = pg
+
 const columns = [
   'id serial PRIMARY KEY',
   'first text',
@@ -107,4 +108,4 @@ const setupDatabase = async (pgConfig) => {
   await client.end()
 }
 
-module.exports = { setupDatabase }
+export { setupDatabase }
