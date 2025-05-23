@@ -294,25 +294,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.5.1":
-  version: 1.5.1
-  resolution: "axios@npm:1.5.1"
-  dependencies:
-    follow-redirects: ^1.15.0
-    form-data: ^4.0.0
-    proxy-from-env: ^1.1.0
-  checksum: 4444f06601f4ede154183767863d2b8e472b4a6bfc5253597ed6d21899887e1fd0ee2b3de792ac4f8459fe2e359d2aa07c216e45fd8b9e4e0688a6ebf48a5a8d
-  languageName: node
-  linkType: hard
-
-"axios@npm:^1.7.9":
-  version: 1.7.9
-  resolution: "axios@npm:1.7.9"
+"axios@npm:1.9.0, axios@npm:^1.9.0":
+  version: 1.9.0
+  resolution: "axios@npm:1.9.0"
   dependencies:
     follow-redirects: ^1.15.6
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: cb8ce291818effda09240cb60f114d5625909b345e10f389a945320e06acf0bc949d0f8422d25720f5dd421362abee302c99f5e97edec4c156c8939814b23d19
+  checksum: 631f02c9c279f2ae90637a4989cc9d75c1c27aefd16b6e8eb90f98a4d0bddaccfd1cb1387be12101d1ab0f9bbf0c47e2451b4de0cf2870462a7d9ed3de8da3f2
   languageName: node
   linkType: hard
 
@@ -549,10 +538,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv@npm:^16.4.7":
-  version: 16.4.7
-  resolution: "dotenv@npm:16.4.7"
-  checksum: c27419b5875a44addcc56cc69b7dc5b0e6587826ca85d5b355da9303c6fc317fc9989f1f18366a16378c9fdd9532d14117a1abe6029cc719cdbbef6eaef2cea4
+"dotenv@npm:^16.5.0":
+  version: 16.5.0
+  resolution: "dotenv@npm:16.5.0"
+  checksum: 6543fe87b5ddf2d60dd42df6616eec99148a5fc150cb4530fef5bda655db5204a3afa0e6f25f7cd64b20657ace4d79c0ef974bec32fdb462cad18754191e7a90
   languageName: node
   linkType: hard
 
@@ -1082,7 +1071,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.15.0, follow-redirects@npm:^1.15.6":
+"follow-redirects@npm:^1.15.6":
   version: 1.15.9
   resolution: "follow-redirects@npm:1.15.9"
   peerDependenciesMeta:
@@ -1161,14 +1150,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-scrud@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "get-scrud@npm:4.0.0"
+"get-scrud@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "get-scrud@npm:4.1.0"
   dependencies:
-    axios: 1.5.1
+    axios: 1.9.0
     pico-ms: ^1.1.1
     ricks-bricks: ^1.1.0
-  checksum: 8a7e7e88a3ed8d8c82b28c352783dd4a6e3140a92140e4192914fd1b9eb02cac5587b3e887e40c4cac8b0a7c9ff6557f1d616e76ae3073df1551edc6a355bc42
+  checksum: 97d168d6355c51f2136e25b4ed2bc55b57108542a97e118a0ea13a40479a71a202cc5c21f1fdd2337d75f3d80a77c1e101759f86ef51eb19bbb368bf190c96f2
   languageName: node
   linkType: hard
 
@@ -1333,13 +1322,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"import-fresh@npm:^3.2.1, import-fresh@npm:^3.3.0":
+"import-fresh@npm:^3.2.1":
   version: 3.3.0
   resolution: "import-fresh@npm:3.3.0"
   dependencies:
     parent-module: ^1.0.0
     resolve-from: ^4.0.0
   checksum: 2cacfad06e652b1edc50be650f7ec3be08c5e5a6f6d12d035c440a42a8cc028e60a5b99ca08a77ab4d6b1346da7d971915828f33cdab730d3d42f08242d09baa
+  languageName: node
+  linkType: hard
+
+"import-fresh@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "import-fresh@npm:3.3.1"
+  dependencies:
+    parent-module: ^1.0.0
+    resolve-from: ^4.0.0
+  checksum: a06b19461b4879cc654d46f8a6244eb55eb053437afd4cbb6613cad6be203811849ed3e4ea038783092879487299fda24af932b86bdfff67c9055ba3612b8c87
   languageName: node
   linkType: hard
 
@@ -2112,17 +2111,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-cloudflare@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "pg-cloudflare@npm:1.1.1"
-  checksum: 32aac06b5dc4588bbf78801b6267781bc7e13be672009df949d08e9627ba9fdc26924916665d4de99d47f9b0495301930547488dad889d826856976c7b3f3731
+"pg-cloudflare@npm:^1.2.5":
+  version: 1.2.5
+  resolution: "pg-cloudflare@npm:1.2.5"
+  checksum: 1d10b067f71f678975441dc63d318dd4307ce1ca5780ceb9fdb0eea3986cdc80ec09612847e7022d74548d6cc0f4eea75b76d8d763aa94a1ec29869fbf1b1ee1
   languageName: node
   linkType: hard
 
-"pg-connection-string@npm:^2.7.0":
-  version: 2.7.0
-  resolution: "pg-connection-string@npm:2.7.0"
-  checksum: 68015a8874b7ca5dad456445e4114af3d2602bac2fdb8069315ecad0ff9660ec93259b9af7186606529ac4f6f72a06831e6f20897a689b16cc7fda7ca0e247fd
+"pg-connection-string@npm:^2.9.0":
+  version: 2.9.0
+  resolution: "pg-connection-string@npm:2.9.0"
+  checksum: c87a25b532e6e575087cb6b9032a7d13e26c5679e997a17bbaf3b646b86ec045f18646971331cc049b5cf58bf97c62b61d44898ac6cbc747242e5a76cd88a8ef
   languageName: node
   linkType: hard
 
@@ -2133,23 +2132,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-pool@npm:^3.7.0":
-  version: 3.7.0
-  resolution: "pg-pool@npm:3.7.0"
+"pg-pool@npm:^3.10.0":
+  version: 3.10.0
+  resolution: "pg-pool@npm:3.10.0"
   peerDependencies:
     pg: ">=8.0"
-  checksum: 66fc1a5ad0e17b72671b9a2cd4c7a856fb08d3cb82da7af0b322590ada23127ac591111e855740405fde4f06c9de888abe9f3aa685ed6038c3232578e1fce8cf
+  checksum: f2958ae9ba97f2514548d8f7ccd0fc6ab1299143e8d5a976f5888c3dbf22bdf4c577e40212b1403e5add7489ce276d16c1a23ef987089c4c43d5a2eaddd6bb73
   languageName: node
   linkType: hard
 
-"pg-protocol@npm:^1.7.0":
-  version: 1.7.0
-  resolution: "pg-protocol@npm:1.7.0"
-  checksum: 2dba740f6fc4b7f9761682c4c42d183b444292cdc7638b373f5247ec995c8199c369953343479281da3c41611fe34130a80c8668348d49a399c164f802f76be2
+"pg-protocol@npm:^1.10.0":
+  version: 1.10.0
+  resolution: "pg-protocol@npm:1.10.0"
+  checksum: 535a1c5517ac9b797110004463b458a5a3e2fb24b80f567ff0ef7a5417914711515a9279f91983251422ef9fe7a436113e5e9ea66fa6d9d608a468081c14c50d
   languageName: node
   linkType: hard
 
-"pg-types@npm:^2.1.0":
+"pg-types@npm:2.2.0":
   version: 2.2.0
   resolution: "pg-types@npm:2.2.0"
   dependencies:
@@ -2162,16 +2161,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg@npm:~8.13.1":
-  version: 8.13.1
-  resolution: "pg@npm:8.13.1"
+"pg@npm:~8.16.0":
+  version: 8.16.0
+  resolution: "pg@npm:8.16.0"
   dependencies:
-    pg-cloudflare: ^1.1.1
-    pg-connection-string: ^2.7.0
-    pg-pool: ^3.7.0
-    pg-protocol: ^1.7.0
-    pg-types: ^2.1.0
-    pgpass: 1.x
+    pg-cloudflare: ^1.2.5
+    pg-connection-string: ^2.9.0
+    pg-pool: ^3.10.0
+    pg-protocol: ^1.10.0
+    pg-types: 2.2.0
+    pgpass: 1.0.5
   peerDependencies:
     pg-native: ">=3.0.1"
   dependenciesMeta:
@@ -2180,11 +2179,11 @@ __metadata:
   peerDependenciesMeta:
     pg-native:
       optional: true
-  checksum: 22cb97fcbee3348d5ee0b195071cc572f9c88eb40cbb61fe6726af68d55d5962121b2d630509bb907703e1c8bdc33de775462029c5399e2a841fa9e6c9da0242
+  checksum: c1acf8de42d163e27f4362f71c0301e8eea86e352ac1de8e500ace9ecc1317b239dadd320745aa4a2549239d84e3273c5b7cb17c341d62290683bf1d469bac5d
   languageName: node
   linkType: hard
 
-"pgpass@npm:1.x":
+"pgpass@npm:1.0.5":
   version: 1.0.5
   resolution: "pgpass@npm:1.0.5"
   dependencies:
@@ -2462,15 +2461,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "scrud@workspace:."
   dependencies:
-    axios: ^1.7.9
-    dotenv: ^16.4.7
-    get-scrud: ^4.0.0
+    axios: ^1.9.0
+    dotenv: ^16.5.0
+    get-scrud: ^4.1.0
     hash-wasm: ^4.12.0
     husky: ^9.1.7
-    import-fresh: ^3.3.0
+    import-fresh: ^3.3.1
     jsonwebtoken: ~9.0.2
     mvt: ^4.2.1
-    pg: ~8.13.1
+    pg: ~8.16.0
     standard: ^17.1.2
     tiny-params: ~4.0.0
   languageName: unknown

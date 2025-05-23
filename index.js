@@ -255,8 +255,8 @@ async function start (opts = {}) {
   if (server.setTimeout) server.setTimeout(opts.timeout || defaultTimeout)
   server.listen(opts.port || port)
   if (opts.postgres) {
-    const pg = (await import('pg')).default
-    pgPool = new pg.Pool(opts.postgres)
+    const { Pool } = await import('pg')
+    pgPool = new Pool(opts.postgres)
   }
   return server
 }

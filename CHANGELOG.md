@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [10.1.0](https://github.com/doesdev/scrud/compare/10.0.0...10.1.0)
+
+> 23 May 2025
+
+#### Dependencies
+- update `pg` from 8.13.1 to 8.16.0 (use names ESM import for `Pool`)
+
 ### [10.0.0](https://github.com/doesdev/scrud/compare/9.0.0...10.0.0)
 
 > 11 December 2024
