@@ -73,34 +73,38 @@ const logIt = (e, level = 'fatal') => {
 }
 
 const parseUrl = (req) => {
+  let url
+
   try {
-    const url = decodeURIComponent(req.url).slice(baseChars)
-    const sIdx = url.indexOf('/')
-    const qIdx = url.indexOf('?')
-    const modIdx = (sIdx === -1 || (qIdx !== -1 && sIdx > qIdx)) ? qIdx : sIdx
-    const lastIdx = url.length - 1
-
-    let id
-    if (sIdx === modIdx) {
-      const postMod = url.slice(sIdx + 1)
-      if (postMod) {
-        let nextMod = postMod.indexOf('/')
-        if (nextMod === -1) nextMod = postMod.indexOf('?')
-        id = nextMod === -1 ? postMod : postMod.slice(0, nextMod)
-      }
-    }
-
-    const noMod = modIdx === -1
-    const name = noMod ? url : url.slice(0, modIdx)
-    const modifier = noMod || modIdx === lastIdx ? '' : url.charAt(modIdx)
-    const action = scrud[`${req.method}${modifier}`]
-    const params = tinyParams(req.url)
-    const data = { url, name, action, id, params }
-
-    return data
-  } catch (error) {
+    url = decodeURIComponent(req.url).slice(baseChars)
+  } catch (ex) {
+    ex.meta = { url: req.url, baseChars }
     return { error }
   }
+
+  const sIdx = url.indexOf('/')
+  const qIdx = url.indexOf('?')
+  const modIdx = (sIdx === -1 || (qIdx !== -1 && sIdx > qIdx)) ? qIdx : sIdx
+  const lastIdx = url.length - 1
+
+  let id
+  if (sIdx === modIdx) {
+    const postMod = url.slice(sIdx + 1)
+    if (postMod) {
+      let nextMod = postMod.indexOf('/')
+      if (nextMod === -1) nextMod = postMod.indexOf('?')
+      id = nextMod === -1 ? postMod : postMod.slice(0, nextMod)
+    }
+  }
+
+  const noMod = modIdx === -1
+  const name = noMod ? url : url.slice(0, modIdx)
+  const modifier = noMod || modIdx === lastIdx ? '' : url.charAt(modIdx)
+  const action = scrud[`${req.method}${modifier}`]
+  const params = tinyParams(req.url)
+  const data = { url, name, action, id, params }
+
+  return data
 }
 
 const callPgFunc = (name, params, req, altPgPool) => {
