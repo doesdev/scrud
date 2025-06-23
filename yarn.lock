@@ -294,14 +294,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.9.0, axios@npm:^1.9.0":
-  version: 1.9.0
-  resolution: "axios@npm:1.9.0"
+"axios@npm:^1.10.0":
+  version: 1.10.0
+  resolution: "axios@npm:1.10.0"
   dependencies:
     follow-redirects: ^1.15.6
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: 631f02c9c279f2ae90637a4989cc9d75c1c27aefd16b6e8eb90f98a4d0bddaccfd1cb1387be12101d1ab0f9bbf0c47e2451b4de0cf2870462a7d9ed3de8da3f2
+  checksum: b5fd840d499469bf968e44b8ac96f4b363c6aa4c791a50834c086a7cffbc2d77fe24f27af1aba46c3e1f4840aaf991461fc27537990596b93dea0f4df3245a86
   languageName: node
   linkType: hard
 
@@ -1150,14 +1150,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-scrud@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "get-scrud@npm:4.1.0"
+"get-scrud@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "get-scrud@npm:5.1.0"
   dependencies:
-    axios: 1.9.0
-    pico-ms: ^1.1.1
-    ricks-bricks: ^1.1.0
-  checksum: 97d168d6355c51f2136e25b4ed2bc55b57108542a97e118a0ea13a40479a71a202cc5c21f1fdd2337d75f3d80a77c1e101759f86ef51eb19bbb368bf190c96f2
+    pico-ms: ^2.0.1
+    ricks-bricks: ^2.0.0
+  checksum: d17ad6b1358d3aeeb85a639ba940e3934d6300569e6d74fb7edc8398ffcd9c90e2b23735fa3d4314e7a9ec4d5bd792d2c40daac9b3635aa3e58458de1ff1b72a
   languageName: node
   linkType: hard
 
@@ -2111,17 +2110,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-cloudflare@npm:^1.2.5":
-  version: 1.2.5
-  resolution: "pg-cloudflare@npm:1.2.5"
-  checksum: 1d10b067f71f678975441dc63d318dd4307ce1ca5780ceb9fdb0eea3986cdc80ec09612847e7022d74548d6cc0f4eea75b76d8d763aa94a1ec29869fbf1b1ee1
+"pg-cloudflare@npm:^1.2.6":
+  version: 1.2.6
+  resolution: "pg-cloudflare@npm:1.2.6"
+  checksum: da9aada107210d8ae6a1c3bbaf539f9896dda7ebaa922738563bcf9acf2f3d5920dc7c57826fe31f14222daff58159b0d175cdf905f96e139e9110458e815845
   languageName: node
   linkType: hard
 
-"pg-connection-string@npm:^2.9.0":
-  version: 2.9.0
-  resolution: "pg-connection-string@npm:2.9.0"
-  checksum: c87a25b532e6e575087cb6b9032a7d13e26c5679e997a17bbaf3b646b86ec045f18646971331cc049b5cf58bf97c62b61d44898ac6cbc747242e5a76cd88a8ef
+"pg-connection-string@npm:^2.9.1":
+  version: 2.9.1
+  resolution: "pg-connection-string@npm:2.9.1"
+  checksum: 23e63951f866ea400b227976be596963c5e68b84dc161df0aa3e36fe2dc281f405e5121d71ba9d2f27973e25a46dbb219056fd91080505bcadc9ae98c9663cf3
   languageName: node
   linkType: hard
 
@@ -2132,19 +2131,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-pool@npm:^3.10.0":
-  version: 3.10.0
-  resolution: "pg-pool@npm:3.10.0"
+"pg-pool@npm:^3.10.1":
+  version: 3.10.1
+  resolution: "pg-pool@npm:3.10.1"
   peerDependencies:
     pg: ">=8.0"
-  checksum: f2958ae9ba97f2514548d8f7ccd0fc6ab1299143e8d5a976f5888c3dbf22bdf4c577e40212b1403e5add7489ce276d16c1a23ef987089c4c43d5a2eaddd6bb73
+  checksum: 98135a7384be40886bba7100b9ce1a74671ff3877390f68e6db6d50ea56a7f524f7e44e01c02d61efeda97d9dc22d6115d0c66aa7f3cf5b8e892424862d0111a
   languageName: node
   linkType: hard
 
-"pg-protocol@npm:^1.10.0":
-  version: 1.10.0
-  resolution: "pg-protocol@npm:1.10.0"
-  checksum: 535a1c5517ac9b797110004463b458a5a3e2fb24b80f567ff0ef7a5417914711515a9279f91983251422ef9fe7a436113e5e9ea66fa6d9d608a468081c14c50d
+"pg-protocol@npm:^1.10.2":
+  version: 1.10.2
+  resolution: "pg-protocol@npm:1.10.2"
+  checksum: 309f8a021e1ab309fce7e5890477d329403240fb0bf62c5a2202c54546dbb8d0c50fc2c528d41590f936b1fd78cf0685b0f42b4a0f80ab35751f7764ee7fe319
   languageName: node
   linkType: hard
 
@@ -2161,14 +2160,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg@npm:~8.16.0":
-  version: 8.16.0
-  resolution: "pg@npm:8.16.0"
+"pg@npm:~8.16.2":
+  version: 8.16.2
+  resolution: "pg@npm:8.16.2"
   dependencies:
-    pg-cloudflare: ^1.2.5
-    pg-connection-string: ^2.9.0
-    pg-pool: ^3.10.0
-    pg-protocol: ^1.10.0
+    pg-cloudflare: ^1.2.6
+    pg-connection-string: ^2.9.1
+    pg-pool: ^3.10.1
+    pg-protocol: ^1.10.2
     pg-types: 2.2.0
     pgpass: 1.0.5
   peerDependencies:
@@ -2179,7 +2178,7 @@ __metadata:
   peerDependenciesMeta:
     pg-native:
       optional: true
-  checksum: c1acf8de42d163e27f4362f71c0301e8eea86e352ac1de8e500ace9ecc1317b239dadd320745aa4a2549239d84e3273c5b7cb17c341d62290683bf1d469bac5d
+  checksum: 51be8837dd5ae1e85ee6261b50f70a51c5b0efbf0b16e35f2331494e4a1d4d7b97dff69317e07977767a3415660035198983bcef3857ebe09e00d3ed2b4ec159
   languageName: node
   linkType: hard
 
@@ -2192,10 +2191,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pico-ms@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "pico-ms@npm:1.1.1"
-  checksum: 558f3e644f151e40f0466174b7dab9d6d0d16648e7d15d692c616007a2d410e9f88c74b40c6ab60a4a6f4474674c36359a6451704b3eb9496c86d77a136d5f79
+"pico-ms@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "pico-ms@npm:2.0.1"
+  checksum: 576414fbef05d9ef1d04b49849b623ed69e0e4e8dc4534614917f8d110315dbdc22201fa24e582a4dd34610ecc309f6e259b8889740314087624360fdabde5ce
   languageName: node
   linkType: hard
 
@@ -2400,10 +2399,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ricks-bricks@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "ricks-bricks@npm:1.1.0"
-  checksum: 4b73362bc081384479ebe7f88bd705e05abc84c2010b90924a10ce5d5fb4539cf9d24cb3ffc2d137627a39a6658be6f872b95962069ea90622d90470685ba8f4
+"ricks-bricks@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "ricks-bricks@npm:2.0.0"
+  checksum: ae55b7c5ea2633340b814eaa622ea0b2984f2e9171eb156c92bd9f4ff3cbaec17c01fe28f6f4c82be65382e785b652d7b7c3f611ac7298079897a363b052f62b
   languageName: node
   linkType: hard
 
@@ -2461,15 +2460,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "scrud@workspace:."
   dependencies:
-    axios: ^1.9.0
+    axios: ^1.10.0
     dotenv: ^16.5.0
-    get-scrud: ^4.1.0
+    get-scrud: ^5.1.0
     hash-wasm: ^4.12.0
     husky: ^9.1.7
     import-fresh: ^3.3.1
     jsonwebtoken: ~9.0.2
     mvt: ^4.2.1
-    pg: ~8.16.0
+    pg: ~8.16.2
     standard: ^17.1.2
     tiny-params: ~4.0.0
   languageName: unknown
