@@ -1,6 +1,6 @@
 {
   "name": "scrud",
-  "version": "10.2.1",
+  "version": "10.2.2",
   "description": "SCRUD API server, fast, light, capable",
   "engines": {
     "node": ">=8.0.0"

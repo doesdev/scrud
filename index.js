@@ -79,7 +79,7 @@ const parseUrl = (req) => {
     url = decodeURIComponent(req.url).slice(baseChars)
   } catch (ex) {
     ex.meta = { url: req.url, baseChars }
-    return { error }
+    return { error: ex }
   }
 
   const sIdx = url.indexOf('/')

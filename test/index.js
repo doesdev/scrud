@@ -231,6 +231,18 @@ for (const key of Object.keys(config)) {
     }
   })
 
+  test(`${pre}malformed URI returns error`, async (assert) => {
+    const { port, jwt } = getConfig(key)
+    const url = `http://localhost:${port}${basePath}/%`
+    const headers = { Authorization: `Bearer ${jwt}` }
+    try {
+      await axios({ method: 'GET', url, headers })
+    } catch (ex) {
+      if (!ex.response) throw ex
+      assert.is(ex.response.data.error, 'URI malformed')
+    }
+  })
+
   test(`${pre}bad JSON body returns error`, async (assert) => {
     const { port, jwt } = getConfig(key)
     const url = `http://localhost:${port}${basePath}/member/${id}`
