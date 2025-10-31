@@ -1,11 +1,12 @@
 import 'dotenv/config'
 import test from 'mvt'
 import { setup, teardown, pgConfig } from './_db.js'
-import requireFresh from 'import-fresh'
 import axios from 'axios'
 import path from 'node:path'
 import getScrud from 'get-scrud'
-import { fileURLToPath } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
+
+const importFresh = (mod) => import(`${mod}?${Date.now()}`)
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -53,7 +54,7 @@ test.before(async () => {
   await setup()
 
   await Promise.all(Object.entries(config).map(async ([k, instance]) => {
-    instance.scrud = requireFresh(scrudPath)
+    instance.scrud = await importFresh(pathToFileURL(scrudPath))
     const instanceOpts = Object.assign({}, opts, instance)
     await instance.scrud.start(instanceOpts)
     instance.jwt = await instance.scrud.genToken({ some: 'stuffs' })

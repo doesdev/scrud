@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [10.3.0](https://github.com/doesdev/scrud/compare/10.2.1...10.3.0)
+
+> 31 October 2025
+
+#### Dependencies
+- update `pg` (patch), dev deps
+
 ### [10.2.1](https://github.com/doesdev/scrud/compare/10.1.0...10.2.1)
 
 > 23 June 2025
