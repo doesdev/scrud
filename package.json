@@ -30,7 +30,7 @@
     "tiny-params": "~4.0.0"
   },
   "devDependencies": {
-    "axios": "^1.13.1",
+    "axios": "^1.13.2",
     "dotenv": "^17.2.3",
     "get-scrud": "^5.1.0",
     "hash-wasm": "^4.12.0",
