@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [10.4.0](https://github.com/doesdev/scrud/compare/10.3.0...10.4.0)
+
+> 04 December 2025
+
+#### Dependencies
+- update `jsonwebtoken`
+
 ### [10.3.0](https://github.com/doesdev/scrud/compare/10.2.1...10.3.0)
 
 > 31 October 2025
