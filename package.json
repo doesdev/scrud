@@ -13,8 +13,7 @@
   "scripts": {
     "test": "mvt --verbose",
     "test-db": "mvt test-db --verbose",
-    "test-all": "mvt test test-db --verbose",
-    "prepare": "husky"
+    "test-all": "mvt test test-db --verbose"
   },
   "repository": {
     "type": "git",
