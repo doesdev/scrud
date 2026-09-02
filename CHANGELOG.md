@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [11.0.0](https://github.com/doesdev/scrud/compare/10.4.0...11.0.0)
+
+> 02 September 2026
+
+#### General
+- reject oversized bodies with `413`, previously `500`
+- `maxBodyBytes` counts bytes, it counted UTF-16 code units before, so a
+  multibyte body could run well past the documented limit
+
+#### Features
+- add `requestTimeout` option, passed to `server.requestTimeout`, node's own
+  5 minute default is too short for a body near a large `maxBodyBytes`
+- refuse a body that declares an oversized `content-length` before reading
+  it, rather than after the whole upload has landed
+
+#### Fixes
+- decode the request body once, decoding each chunk on its own corrupted any
+  multibyte character split across a chunk boundary
+- settle `bodyParse` when the request errors, a client that hung up mid body
+  left it pending forever
+
+#### Tests
+- add database free coverage of body limits, decoding, and `requestTimeout`
+- move the database backed tests to `test-db`, opt in via `yarn test-db`, so
+  `yarn test` (and the pre-commit hook) runs without Postgres
+
+#### Docs
+- document `requestTimeout` and the `413` behavior of `maxBodyBytes`
+
 ### [10.4.0](https://github.com/doesdev/scrud/compare/10.3.0...10.4.0)
 
 > 04 December 2025

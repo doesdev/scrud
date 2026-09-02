@@ -1,6 +1,6 @@
 {
   "name": "scrud",
-  "version": "10.4.0",
+  "version": "11.0.0",
   "description": "SCRUD API server, fast, light, capable",
   "engines": {
     "node": ">=8.0.0"
@@ -12,6 +12,8 @@
   ],
   "scripts": {
     "test": "mvt --verbose",
+    "test-db": "mvt test-db --verbose",
+    "test-all": "mvt test test-db --verbose",
     "prepare": "husky"
   },
   "repository": {

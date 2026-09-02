@@ -144,20 +144,47 @@ const callPgFunc = (name, params, req, altPgPool) => {
   })
 }
 
+const tooLargeError = (meta) => {
+  const err = new Error('Body too large')
+
+  err.statusCode = 413
+  err.meta = meta
+
+  return err
+}
+
+const declaredBytes = (req) => {
+  const declared = parseInt(req.headers['content-length'], 10)
+
+  return Number.isNaN(declared) ? 0 : declared
+}
+
 const bodyParse = (req) => new Promise((resolve, reject) => {
-  let body = ''
-  const ondata = (d, start, end) => {
-    if (start !== undefined && end !== undefined) {
-      body += d.slice(start, start + end).toString('utf8')
-    } else {
-      body += d.toString('utf8')
-    }
-    if (body.length > maxBodyBytes) return reject(new Error('Body too large'))
+  // a client that declares an oversized body is told so before it uploads,
+  // rather than after minutes of transfer that can only end in a reject
+  const declared = declaredBytes(req)
+
+  if (declared > maxBodyBytes) return reject(tooLargeError({ declared }))
+
+  const chunks = []
+  let bytes = 0
+
+  // chunks are collected and decoded once at the end, decoding each on its
+  // own would corrupt any multibyte character that straddles a boundary,
+  // and d.length is bytes where a string length is utf16 code units
+  const ondata = (d) => {
+    bytes += d.length
+
+    if (bytes > maxBodyBytes) return reject(tooLargeError({ bytes }))
+
+    chunks.push(d)
   }
 
   const parse = () => {
     try {
-      resolve(body ? JSON.parse(body) : {})
+      const body = Buffer.concat(chunks, bytes).toString('utf8')
+
+      resolve(bytes ? JSON.parse(body) : {})
     } catch (ex) {
       logIt(ex, 'warn')
       reject(new Error('Error parsing JSON request body'))
@@ -165,6 +192,8 @@ const bodyParse = (req) => new Promise((resolve, reject) => {
   }
 
   req.on('data', ondata)
+  // without this a client that hangs up mid body leaves this pending forever
+  req.on('error', reject)
   req.on('end', parse)
 })
 
@@ -261,6 +290,11 @@ async function start (opts = {}) {
 
   server = http.createServer(handleRequest)
   if (server.setTimeout) server.setTimeout(opts.timeout || defaultTimeout)
+  // node defaults this to 5 minutes, which a body near maxBodyBytes cannot
+  // finish over a slow link, headersTimeout still caps the header phase
+  if (opts.requestTimeout !== undefined) {
+    server.requestTimeout = opts.requestTimeout
+  }
   server.listen(opts.port || port)
   if (opts.postgres) {
     const { Pool } = await import('pg')
@@ -318,7 +352,15 @@ function handleRequest (req, res) {
     return bodyParse(req).then((body) => {
       req.params = Object.assign({}, body, req.params)
       return actionHandler(req, res, name, action)
-    }).catch((e) => sendErr(res, e))
+    }).catch((e) => {
+      // a refused body may still be arriving, closing the connection once
+      // the response is out stops it without draining the rest of it
+      if (e.statusCode === 413 && !res.headersSent) {
+        res.setHeader('Connection', 'close')
+      }
+
+      return sendErr(res, e, e.statusCode || 500)
+    })
   }
 
   const noAuth = !jwtOpts || (resource.skipAuth && resource.skipAuth[action])

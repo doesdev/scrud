@@ -145,9 +145,12 @@ Set global options and start API server
   - **jsonwebtoken** - *required for JWT authentication* - configuration for [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) connection
     - type: `Object` that contains options from both the `sign` and `verify` methods at [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken)
     - default: `null`
-  - **maxBodyBytes** - *optional* - max bytes allowed from incoming request body
+  - **maxBodyBytes** - *optional* - max bytes allowed from incoming request body. A request that declares a larger `content-length` is rejected with a `413` before its body is read
     - type: `Integer` (bytes)
     - default: `1e6`
+  - **requestTimeout** - *optional* - ms allowed for a whole request, headers and body, passed through to [`server.requestTimeout`](https://nodejs.org/api/http.html#serverrequesttimeout). Node's own default of 5 minutes is too short for a body near a large `maxBodyBytes` on a slow connection. `0` disables it
+    - type: `Integer` (ms)
+    - default: node's default (`300000`)
   - **logger** - *optional* - callback that will get called with any errors encountered
     - type: `Function` - receives (Error, String[loglevel])
     - default: `console.log`
